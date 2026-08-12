@@ -227,6 +227,17 @@ describe('#immoscout-mobile URL conversion', () => {
     expect(converted).not.toContain('minimuminternetspeed');
   });
 
+  // A pagesize cap in the web URL passes through to the mobile API. Fredy reads everything on the
+  // first page, so this is what lets a job fetch exactly N exposes instead of the API default.
+  it('should pass through a pagesize query parameter', () => {
+    const webUrl = 'https://www.immobilienscout24.de/Suche/de/berlin/berlin/wohnung-mieten?pagesize=10';
+
+    const converted = convertWebToMobile(webUrl);
+    const queryParams = new URL(converted).searchParams;
+    expect(queryParams.get('pagesize')).toBe('10');
+    expect(converted).toContain('api.mobile.immobilienscout24.de/search/list');
+  });
+
   // Test URL conversion with invalid URL
   it('should throw an error for invalid URL', () => {
     const invalidUrl = 'invalid-url';
