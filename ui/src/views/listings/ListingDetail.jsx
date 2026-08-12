@@ -53,6 +53,7 @@ import ListingDeletionModal from '../../components/ListingDeletionModal.jsx';
 import Headline from '../../components/headline/Headline.jsx';
 import IconEuro from '../../components/icons/IconEuro.jsx';
 import StatusControl from '../../components/listings/StatusControl.jsx';
+import CoarseLocationBadge from '../../components/listings/CoarseLocationBadge.jsx';
 import ListingFinanceCard from './components/ListingFinanceCard.jsx';
 import PriceHistoryChart from './components/PriceHistoryChart.jsx';
 import NearbyStops from '../../components/transit/NearbyStops.jsx';
@@ -487,6 +488,7 @@ export default function ListingDetail() {
             ) : (
               <Text type="secondary">{t('listing.detail.noAddress')}</Text>
             )}
+            <CoarseLocationBadge precision={listing.geocode_precision} />
             <AddressEditor isManual={listing.address_is_manual === 1} onSave={saveAddress} onPickOnMap={startPinDrop} />
           </Space>
           <Space wrap className="listing-detail__header-actions">

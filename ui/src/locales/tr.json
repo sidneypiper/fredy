@@ -208,6 +208,8 @@
   "listings.tooltipOriginalListing": "Orijinal İlan",
   "listings.tooltipViewInFredy": "Fredy'de Görüntüle",
   "listings.tooltipRemove": "Kaldır",
+  "listing.coarseLocation": "Yaklaşık",
+  "listing.coarseLocationHint": "Yalnızca posta kodu veya semt biliniyor, bu yüzden konum ve yolculuk süreleri tahminidir.",
   "listing.detail.back": "Geri",
   "listing.detail.defaultTitle": "İlan Detayı",
   "listing.detail.noAddress": "Adres belirtilmedi",

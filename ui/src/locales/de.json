@@ -208,6 +208,8 @@
   "listings.tooltipOriginalListing": "Original-Inserat",
   "listings.tooltipViewInFredy": "In Fredy anzeigen",
   "listings.tooltipRemove": "Entfernen",
+  "listing.coarseLocation": "ca.",
+  "listing.coarseLocationHint": "Es ist nur die Postleitzahl oder der Stadtteil bekannt, daher sind der Pin und eventuelle Fahrzeiten nur Näherungswerte.",
   "listing.detail.back": "Zurück",
   "listing.detail.defaultTitle": "Inserat-Details",
   "listing.detail.noAddress": "Keine Adresse angegeben",

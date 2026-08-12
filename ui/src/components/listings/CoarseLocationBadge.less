@@ -1,0 +1,20 @@
+/*
+ * Copyright (c) 2026 by Christian Kellner.
+ * Licensed under Apache-2.0 with Commons Clause and Attribution/Naming Clause
+ */
+
+/* Semi's CSS variables rather than the LESS tokens: this badge renders inside MapLibre popups
+   too, which are themed through the same variables. It deliberately mirrors the transit
+   "Estimated" chip so the two read as one family of caveat. */
+.coarse-location {
+  display: inline-block;
+  color: var(--semi-color-text-2);
+  font-size: 0.68rem;
+  border: 1px solid var(--semi-color-border);
+  border-radius: 3px;
+  padding: 0 4px;
+  line-height: 1.5;
+  white-space: nowrap;
+  vertical-align: middle;
+  cursor: help;
+}

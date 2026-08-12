@@ -38,6 +38,7 @@ describe('storeListings id propagation', () => {
         manually_deleted INTEGER DEFAULT 0,
         latitude REAL,
         longitude REAL,
+        geocode_precision TEXT,
         distances TEXT,
         notes TEXT,
         status TEXT,

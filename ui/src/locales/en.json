@@ -208,6 +208,8 @@
   "listings.tooltipOriginalListing": "Original Listing",
   "listings.tooltipViewInFredy": "View in Fredy",
   "listings.tooltipRemove": "Remove",
+  "listing.coarseLocation": "Approx.",
+  "listing.coarseLocationHint": "Only the postcode or district is known, so the pin and any travel time are estimates.",
   "listing.detail.back": "Back",
   "listing.detail.defaultTitle": "Listing Detail",
   "listing.detail.noAddress": "No address provided",

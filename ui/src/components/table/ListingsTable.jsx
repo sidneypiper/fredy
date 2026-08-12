@@ -12,6 +12,7 @@ import StatusControl from '../listings/StatusControl.jsx';
 import ExternalListingLink from '../listings/ExternalListingLink.jsx';
 import AffordabilityChip from '../listings/AffordabilityChip.jsx';
 import PriceChangeBadge from '../listings/PriceChangeBadge.jsx';
+import CoarseLocationBadge from '../listings/CoarseLocationBadge.jsx';
 import CommuteBadge from '../transit/CommuteBadge.jsx';
 
 import './ListingsTable.less';
@@ -79,6 +80,7 @@ const ListingsTable = ({
               <>
                 <IconMapPin size="small" />
                 {item.address}
+                <CoarseLocationBadge precision={item.geocode_precision} />
               </>
             ) : (
               <span className="listingsTable__row__empty">---</span>

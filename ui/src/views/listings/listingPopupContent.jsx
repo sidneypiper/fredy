@@ -73,6 +73,28 @@ function escapeHtml(value) {
 }
 
 /**
+ * The approximate-location chip, when the listing only geocoded to a postcode or district centre.
+ *
+ * The popup is plain HTML, so a Semi tooltip cannot be mounted; the hint goes into a `title`
+ * attribute instead. The class is the same one the React badge uses, so the styling is shared
+ * through the global CSS bundle.
+ *
+ * @param {'exact'|'coarse'|null|undefined} precision
+ * @param {(key: string, vars?: Record<string, string|number>) => string} t
+ * @returns {string} Markup, or an empty string.
+ */
+function coarseLocationChip(precision, t) {
+  if (precision !== 'coarse') {
+    return '';
+  }
+  return renderToString(
+    <span className="coarse-location" title={t('listing.coarseLocationHint')}>
+      {t('listing.coarseLocation')}
+    </span>,
+  );
+}
+
+/**
  * The travel times of one listing, as a line per address.
  *
  * Left out entirely when there is nothing routed. A popup is small and a row saying "unknown" would
@@ -134,7 +156,7 @@ function renderListingBody(listing, index, total, t) {
     <h4>${listing.title}</h4>
     <div class="info">
       <span><strong>${t('map.popupPrice')}</strong> ${listing.price ? listing.price + ' €' : t('common.na')}</span>
-      <span><strong>${t('map.popupAddress')}</strong> ${listing.address || t('common.na')}</span>
+      <span><strong>${t('map.popupAddress')}</strong> ${listing.address || t('common.na')}${coarseLocationChip(listing.geocode_precision, t)}</span>
       <span><strong>${t('map.popupJob')}</strong> ${listing.job_name || t('common.na')}</span>
       <span><strong>${t('map.popupProvider')}</strong> ${capitalizedProvider}</span>
       <span><strong>${t('map.popupSize')}</strong> ${listing.size != null ? `${listing.size} m²` : t('common.na')}</span>
