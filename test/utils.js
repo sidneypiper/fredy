@@ -20,7 +20,7 @@ vi.mock('../lib/services/geocoding/geoCodingService.js', () => ({
   geocodeAddress: mockStore.getGeocoordinatesByAddress,
 }));
 vi.mock('../lib/services/storage/jobStorage.js', () => ({
-  getJob: (jobKey) => ({ id: jobKey, userId: 'user1' }),
+  getJob: mockStore.getJob,
 }));
 vi.mock('../lib/services/sse/sse-broker.js', () => ({
   sendToUser: (userId, event, data) => {

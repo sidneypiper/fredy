@@ -17,6 +17,20 @@ export const getGeocoordinatesByAddress = (any) => {
   return null;
 };
 
+let travelTimes = new Map();
+export function setTravelTimes(rows) {
+  travelTimes = rows;
+}
+export const getTravelTimesForListings = (ids) => travelTimes;
+
+let job = null;
+export function setJob(next) {
+  job = next;
+}
+export function getJob(jobKey) {
+  return job ?? { id: jobKey, userId: 'user1' };
+}
+
 let userSettings = null;
 export function setUserSettings(settings) {
   userSettings = settings;

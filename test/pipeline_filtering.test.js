@@ -420,3 +420,123 @@ describe('Live reload triggers via SSE', () => {
     });
   });
 });
+
+describe('Enrichment runs only on listings that pass the travel time filter', () => {
+  afterEach(() => {
+    mockStore.setUserSettings(null);
+    mockStore.setJob(null);
+    mockStore.setTravelTimes(new Map());
+  });
+
+  it('fetches the detail page only for listings within the commute, not for the ones filtered out', async () => {
+    const Fredy = await mockFredy();
+    const providerId = 'travel-provider';
+
+    mockStore.setUserSettings({ provider_details: [providerId] });
+    mockStore.setJob({
+      id: 'travel-job',
+      userId: 'user1',
+      travelTimeCondition: {
+        places: [{ label: 'Home', lat: 50.94, lng: 6.96, exactMaxMinutes: 30, coarseMaxMinutes: 45 }],
+      },
+    });
+    // The travel time sweep is not part of this test; the stored rows are handed in directly.
+    mockStore.setTravelTimes(
+      new Map([
+        [
+          'near',
+          [
+            {
+              listing_id: 'near',
+              label: 'Home',
+              origin_lat: 50.94,
+              origin_lng: 6.96,
+              estimate_mode: 'transit',
+              transit_minutes: 20,
+              car_minutes: null,
+              bike_minutes: null,
+              walk_minutes: null,
+            },
+          ],
+        ],
+        [
+          'far',
+          [
+            {
+              listing_id: 'far',
+              label: 'Home',
+              origin_lat: 50.94,
+              origin_lng: 6.96,
+              estimate_mode: 'transit',
+              transit_minutes: 60,
+              car_minutes: null,
+              bike_minutes: null,
+              walk_minutes: null,
+            },
+          ],
+        ],
+      ]),
+    );
+
+    const fetchDetails = vi.fn((listing) => Promise.resolve({ ...listing, description: 'enriched' }));
+    const providerConfig = {
+      url: 'http://example.com',
+      getListings: () =>
+        Promise.resolve([
+          {
+            id: 'near',
+            title: 'Near',
+            address: 'A street',
+            price: '100',
+            link: 'http://example.com/near',
+            description: 'd',
+            latitude: 50.95,
+            longitude: 6.97,
+          },
+          {
+            id: 'far',
+            title: 'Far',
+            address: 'B street',
+            price: '200',
+            link: 'http://example.com/far',
+            description: 'd',
+            latitude: 50.95,
+            longitude: 6.97,
+          },
+        ]),
+      normalize: (l) => l,
+      filter: () => true,
+      fetchDetails,
+      crawlFields: {
+        id: 'id',
+        title: 'title',
+        address: 'address',
+        price: 'price',
+        link: 'link',
+        description: 'description',
+      },
+      requiredFieldNames: ['id', 'title', 'address', 'price', 'link', 'description'],
+    };
+
+    const fredy = new Fredy(
+      providerConfig,
+      { id: 'travel-job', notificationAdapter: null, specFilter: null, spatialFilter: null },
+      providerId,
+      { checkAndAddEntry: () => false },
+      undefined,
+    );
+    mockStore.deletedIds.length = 0;
+
+    const result = await fredy.execute();
+    const ids = result.map((l) => l.id);
+
+    // The far listing was soft-deleted by the travel filter and never notified.
+    expect(ids).toContain('near');
+    expect(ids).not.toContain('far');
+    expect(mockStore.deletedIds).toContain('far');
+
+    // Enrichment ran after the filter, so the detail page was fetched for the survivor only.
+    expect(fetchDetails).toHaveBeenCalledTimes(1);
+    expect(fetchDetails.mock.calls[0][0].id).toBe('near');
+  });
+});
