@@ -942,7 +942,7 @@
   "settings.aiApiKeyLabel": "API anahtarı",
   "settings.aiApiKeyHelp": "Ollama Cloud API anahtarınız. Gizli olarak saklanır ve bir daha gösterilmez.",
   "settings.aiApiKeyPlaceholder": "API anahtarınızı yapıştırın",
-  "settings.aiApiKeySet": "Bir anahtar zaten kayıtlı. Korumak için boş bırakın.",
+  "settings.aiApiKeySet": "Bir anahtar kayıtlı. Yenisini girmek için temizleyin.",
   "settings.aiSave": "Kaydet",
   "settings.aiSaved": "Yapay zeka ayarları kaydedildi",
   "settings.aiSaveError": "Yapay zeka ayarları kaydedilemedi",
@@ -950,5 +950,6 @@
   "listing.detail.personalizedMessageCopy": "Kopyala",
   "listing.detail.personalizedMessageCopied": "Mesaj kopyalandı",
   "listing.detail.personalizedMessageEmpty": "Bu ilan için kişiselleştirilmiş mesaj yok.",
-  "jobs.mutation.personalizedMessageNoAi": "Kişiselleştirilmiş mesajları etkinleştirmek için Ayarlar → Yapay Zeka altında bir yapay zeka sağlayıcısı yapılandırın."
+  "jobs.mutation.personalizedMessageNoAi": "Kişiselleştirilmiş mesajları etkinleştirmek için Ayarlar → Yapay Zeka altında bir yapay zeka sağlayıcısı yapılandırın.",
+  "settings.aiApiKeyClear": "Anahtarı temizle"
 }

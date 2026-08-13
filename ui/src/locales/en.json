@@ -957,7 +957,7 @@
   "settings.aiApiKeyLabel": "API key",
   "settings.aiApiKeyHelp": "Your Ollama Cloud API key. Stored as a secret and never shown again.",
   "settings.aiApiKeyPlaceholder": "Paste your API key",
-  "settings.aiApiKeySet": "A key is already stored. Leave empty to keep it.",
+  "settings.aiApiKeySet": "A key is stored. Clear it to enter a new one.",
   "settings.aiSave": "Save",
   "settings.aiSaved": "AI settings saved",
   "settings.aiSaveError": "Could not save AI settings",
@@ -965,5 +965,6 @@
   "listing.detail.personalizedMessageCopy": "Copy",
   "listing.detail.personalizedMessageCopied": "Message copied",
   "listing.detail.personalizedMessageEmpty": "No personalized message for this listing.",
-  "jobs.mutation.personalizedMessageNoAi": "Configure an AI provider under Settings → AI to enable personalized messages."
+  "jobs.mutation.personalizedMessageNoAi": "Configure an AI provider under Settings → AI to enable personalized messages.",
+  "settings.aiApiKeyClear": "Clear key"
 }

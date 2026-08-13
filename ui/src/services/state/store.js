@@ -544,30 +544,27 @@ export const useFredyState = create(
            * Persist the AI provider, model and API key used for personalized messages.
            *
            * The key is never returned by the server, so the local state only mirrors the
-           * provider and model; the key lives server-side.
+           * provider and model; the key lives server-side. The payload may omit ai_api_key
+           * (keep the stored one), send null (delete it) or send a string (replace it).
            *
-           * @param {{ai_provider: string|null, ai_model: string|null, ai_api_key: string|null}} params
+           * @param {{ai_provider: string|null, ai_model: string|null, ai_api_key?: string|null}} payload
            * @returns {Promise<void>}
            */
-          async setAiSettings({ ai_provider, ai_model, ai_api_key }) {
+          async setAiSettings(payload) {
             try {
-              const response = await xhrPost('/api/user/settings/ai-settings', {
-                ai_provider,
-                ai_model,
-                ai_api_key,
-              });
+              const response = await xhrPost('/api/user/settings/ai-settings', payload);
               if (response.status === 200) {
-                set((state) => ({
-                  userSettings: {
-                    ...state.userSettings,
-                    settings: {
-                      ...state.userSettings.settings,
-                      ai_provider,
-                      ai_model,
-                      ai_api_key_set: Boolean(ai_api_key) || state.userSettings.settings.ai_api_key_set,
-                    },
-                  },
-                }));
+                set((state) => {
+                  const next = {
+                    ...state.userSettings.settings,
+                    ai_provider: payload.ai_provider,
+                    ai_model: payload.ai_model,
+                  };
+                  if (payload.ai_api_key !== undefined) {
+                    next.ai_api_key_set = payload.ai_api_key !== null && payload.ai_api_key !== '';
+                  }
+                  return { userSettings: { ...state.userSettings, settings: next } };
+                });
                 return;
               }
               throw response;

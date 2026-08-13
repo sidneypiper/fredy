@@ -5,7 +5,7 @@
 
 import { useEffect, useState } from 'react';
 import { Button, Input, Select, Toast } from '@douyinfe/semi-ui-19';
-import { IconSave } from '@douyinfe/semi-icons';
+import { IconSave, IconDelete } from '@douyinfe/semi-icons';
 
 import { SegmentPart } from '../../../components/segment/SegmentPart';
 import { errorMessage } from '../../../services/xhr';
@@ -18,12 +18,16 @@ const PROVIDERS = ['ollama'];
 /** Display names for the provider values. */
 const PROVIDER_LABELS = { ollama: 'Ollama Cloud' };
 
+/** Shown as the input placeholder while a key is stored - a hint, never the key itself. */
+const MASKED_KEY_PLACEHOLDER = '••••••••••••';
+
 /**
  * The AI used to personalize messages for jobs with the feature enabled.
  *
  * Per-user like the other settings on this page: each user picks their own provider, model and
  * API key. The key is stored as a secret and never returned by the server, so the form only
- * knows whether one is stored - leaving the field empty keeps the stored key.
+ * knows whether one is stored: a masked placeholder marks it, and the clear button removes it
+ * before a new one can be entered. Saving with an untouched field keeps the stored key.
  *
  * @returns {React.ReactElement}
  */
@@ -37,21 +41,37 @@ export default function AiPage() {
   const [provider, setProvider] = useState(null);
   const [model, setModel] = useState('');
   const [apiKey, setApiKey] = useState('');
+  // True once the user cleared the stored key; the save then deletes it instead of keeping it.
+  const [keyCleared, setKeyCleared] = useState(false);
 
   useEffect(() => {
     setProvider(settings.ai_provider ?? null);
     setModel(settings.ai_model ?? '');
-  }, [settings.ai_provider, settings.ai_model]);
+    setApiKey('');
+    setKeyCleared(false);
+  }, [settings.ai_provider, settings.ai_model, settings.ai_api_key_set]);
+
+  const keyStored = settings.ai_api_key_set && !keyCleared;
+
+  const handleClearKey = () => {
+    setKeyCleared(true);
+    setApiKey('');
+  };
 
   const handleSave = async () => {
     try {
-      await actions.userSettings.setAiSettings({
-        ai_provider: provider,
-        ai_model: model.trim() || null,
-        // Empty means "keep the stored key"; the server only overwrites when a value is sent.
-        ai_api_key: apiKey.trim() || null,
-      });
+      const payload = { ai_provider: provider, ai_model: model.trim() || null };
+      if (keyCleared) {
+        // The user cleared the stored key: delete it.
+        payload.ai_api_key = null;
+      } else if (apiKey.trim()) {
+        // A new key was typed: replace the stored one.
+        payload.ai_api_key = apiKey.trim();
+      }
+      // Otherwise the field was left untouched: keep the stored key (omit the field).
+      await actions.userSettings.setAiSettings(payload);
       setApiKey('');
+      setKeyCleared(false);
       Toast.success(t('settings.aiSaved'));
     } catch (error) {
       Toast.error(errorMessage(error, t('settings.aiSaveError')));
@@ -97,15 +117,25 @@ export default function AiPage() {
             <div style={{ marginBottom: 6 }}>
               <label style={{ fontSize: 14, color: 'var(--semi-color-text-0)' }}>{t('settings.aiApiKeyLabel')}</label>
             </div>
-            <Input
-              type="password"
-              value={apiKey}
-              onChange={setApiKey}
-              placeholder={t('settings.aiApiKeyPlaceholder')}
-              style={{ width: '100%' }}
-            />
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              <Input
+                type="password"
+                value={apiKey}
+                onChange={setApiKey}
+                placeholder={keyStored ? MASKED_KEY_PLACEHOLDER : t('settings.aiApiKeyPlaceholder')}
+                style={{ flex: 1 }}
+              />
+              {keyStored && (
+                <Button
+                  icon={<IconDelete />}
+                  theme="borderless"
+                  onClick={handleClearKey}
+                  aria-label={t('settings.aiApiKeyClear')}
+                />
+              )}
+            </div>
             <div style={{ fontSize: 12, color: 'var(--semi-color-text-2)', marginTop: 4 }}>
-              {settings.ai_api_key_set ? t('settings.aiApiKeySet') : t('settings.aiApiKeyHelp')}
+              {keyStored ? t('settings.aiApiKeySet') : t('settings.aiApiKeyHelp')}
             </div>
           </div>
           <div>

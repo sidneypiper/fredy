@@ -957,7 +957,7 @@
   "settings.aiApiKeyLabel": "API-Schlüssel",
   "settings.aiApiKeyHelp": "Dein Ollama-Cloud-API-Schlüssel. Wird als Geheimnis gespeichert und nie wieder angezeigt.",
   "settings.aiApiKeyPlaceholder": "API-Schlüssel einfügen",
-  "settings.aiApiKeySet": "Ein Schlüssel ist bereits gespeichert. Leer lassen, um ihn zu behalten.",
+  "settings.aiApiKeySet": "Ein Schlüssel ist gespeichert. Lösche ihn, um einen neuen einzugeben.",
   "settings.aiSave": "Speichern",
   "settings.aiSaved": "KI-Einstellungen gespeichert",
   "settings.aiSaveError": "KI-Einstellungen konnten nicht gespeichert werden",
@@ -965,5 +965,6 @@
   "listing.detail.personalizedMessageCopy": "Kopieren",
   "listing.detail.personalizedMessageCopied": "Nachricht kopiert",
   "listing.detail.personalizedMessageEmpty": "Keine personalisierte Nachricht für dieses Inserat.",
-  "jobs.mutation.personalizedMessageNoAi": "Konfiguriere einen KI-Anbieter unter Einstellungen → KI, um personalisierte Nachrichten zu aktivieren."
+  "jobs.mutation.personalizedMessageNoAi": "Konfiguriere einen KI-Anbieter unter Einstellungen → KI, um personalisierte Nachrichten zu aktivieren.",
+  "settings.aiApiKeyClear": "Schlüssel löschen"
 }
