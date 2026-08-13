@@ -562,6 +562,57 @@ export default function ListingDetail() {
               </Space>
             </div>
 
+            {/* The distances and travel times answer "how do I get there?", which is the same
+                question the map below answers - so they sit right above it, on the left side of
+                the page. The times load on their own: a listing found minutes ago has not been
+                routed yet, and this is where somebody would look. */}
+            {Array.isArray(listing.distances) && listing.distances.length > 0 && (
+              <>
+                <Divider margin="1.5rem" />
+                <Space align="center" wrap>
+                  <IconActivity style={{ fontSize: '18px', color: 'var(--semi-color-primary)' }} />
+                  <Text strong>{t('listing.detail.distanceToHome')}</Text>
+                  {listing.distances.map((d) => (
+                    <Tag color="blue" key={d.label}>
+                      {d.label}: {d.meters} m
+                    </Tag>
+                  ))}
+                </Space>
+              </>
+            )}
+
+            {listing.latitude != null && listing.longitude != null && (
+              <>
+                <Divider margin="1.5rem" />
+                <Text strong style={{ display: 'block', marginBottom: '0.5rem' }}>
+                  {t('travelTime.title')}
+                </Text>
+                <TravelTimes listingId={listing.id} travelTimes={listing.travelTimes} refine onLoaded={setRouteTimes} />
+
+                {/* Sits under the times rather than on the map: it is the same question the
+                    numbers above answer, only drawn. A mode with no route stored falls back to
+                    the straight line, and says so. */}
+                <div className="listingDetail__routePicker">
+                  <Text size="small" type="tertiary">
+                    {t('listing.detail.routeLabel')}
+                  </Text>
+                  <Select size="small" style={{ width: 170 }} value={routeMode} onChange={setRouteMode}>
+                    <Select.Option value="straight">{t('listing.detail.routeStraight')}</Select.Option>
+                    {TRAVEL_MODES.map((mode) => (
+                      <Select.Option key={mode.key} value={mode.key}>
+                        {mode.icon} {t(mode.labelKey)}
+                      </Select.Option>
+                    ))}
+                  </Select>
+                  {routeMode !== 'straight' && !hasRouteFor(routeTimes, routeMode) && (
+                    <Text size="small" type="tertiary">
+                      {t('listing.detail.routeMissing')}
+                    </Text>
+                  )}
+                </div>
+              </>
+            )}
+
             {/* The map used to run the full width under the card, which pushed it a screen
                 below the figures. In this column it sits beside the details and the costing,
                 so the whole listing fits on one screen. */}
@@ -722,61 +773,6 @@ export default function ListingDetail() {
                     </Button>
                   </Space>
                   <Text style={{ whiteSpace: 'pre-wrap' }}>{'\n' + listing.personalized_message}</Text>
-                </>
-              )}
-
-              {Array.isArray(listing.distances) && listing.distances.length > 0 && (
-                <>
-                  <Divider margin="1.5rem" />
-                  <Space align="center" wrap>
-                    <IconActivity style={{ fontSize: '18px', color: 'var(--semi-color-primary)' }} />
-                    <Text strong>{t('listing.detail.distanceToHome')}</Text>
-                    {listing.distances.map((d) => (
-                      <Tag color="blue" key={d.label}>
-                        {d.label}: {d.meters} m
-                      </Tag>
-                    ))}
-                  </Space>
-                </>
-              )}
-
-              {/* Right below the straight-line distances, because the two answer the same question
-                  and the second one is the honest answer. It loads on its own: a listing found
-                  minutes ago has not been routed yet, and this is where somebody would look. */}
-              {listing.latitude != null && listing.longitude != null && (
-                <>
-                  <Divider margin="1.5rem" />
-                  <Text strong style={{ display: 'block', marginBottom: '0.5rem' }}>
-                    {t('travelTime.title')}
-                  </Text>
-                  <TravelTimes
-                    listingId={listing.id}
-                    travelTimes={listing.travelTimes}
-                    refine
-                    onLoaded={setRouteTimes}
-                  />
-
-                  {/* Sits under the times rather than on the map: it is the same question the
-                      numbers above answer, only drawn. A mode with no route stored falls back to
-                      the straight line, and says so. */}
-                  <div className="listingDetail__routePicker">
-                    <Text size="small" type="tertiary">
-                      {t('listing.detail.routeLabel')}
-                    </Text>
-                    <Select size="small" style={{ width: 170 }} value={routeMode} onChange={setRouteMode}>
-                      <Select.Option value="straight">{t('listing.detail.routeStraight')}</Select.Option>
-                      {TRAVEL_MODES.map((mode) => (
-                        <Select.Option key={mode.key} value={mode.key}>
-                          {mode.icon} {t(mode.labelKey)}
-                        </Select.Option>
-                      ))}
-                    </Select>
-                    {routeMode !== 'straight' && !hasRouteFor(routeTimes, routeMode) && (
-                      <Text size="small" type="tertiary">
-                        {t('listing.detail.routeMissing')}
-                      </Text>
-                    )}
-                  </div>
                 </>
               )}
             </div>
