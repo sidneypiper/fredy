@@ -58,6 +58,21 @@ describe('OllamaClient', () => {
     expect(await client.complete([], { model: 'm' })).toBeNull();
   });
 
+  it('retries once when the model answers with an empty string, then returns null', async () => {
+    const fetchMock = stubFetch(() => okResponse({ choices: [{ message: { content: '' } }] }));
+    const client = new OllamaClient({ apiKey: 'key' });
+    expect(await client.complete([], { model: 'm' })).toBeNull();
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('uses the second attempt when the first answer is empty', async () => {
+    const fetchMock = stubFetch(() => okResponse({ choices: [{ message: { content: '' } }] }));
+    fetchMock.mockImplementationOnce(() => okResponse({ choices: [{ message: { content: '' } }] }));
+    fetchMock.mockImplementationOnce(() => okResponse({ choices: [{ message: { content: 'real answer' } }] }));
+    const client = new OllamaClient({ apiKey: 'key' });
+    expect(await client.complete([], { model: 'm' })).toEqual({ text: 'real answer', model: 'm' });
+  });
+
   it('retries once on a network error and then returns null', async () => {
     const fetchMock = stubFetch(() => {
       throw new Error('ECONNRESET');

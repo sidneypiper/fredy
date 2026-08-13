@@ -159,6 +159,16 @@ describe('MessageComposer', () => {
     expect(result.body).toContain('01.11.2026');
   });
 
+  it('skips the message when the fallback would have to praise a section heading', async () => {
+    const composer = new MessageComposer({ client: fakeClient([null]), model: 'm' });
+    const headingOnly = {
+      title: 'Wohnung',
+      description: 'Agent: Max Mustermann\n\nBeschreibung\nRuhige 2-Zimmer-Wohnung in zentraler Lage mit Balkon.',
+    };
+    const result = await composer.compose(headingOnly, '{{GREETING}} {{AD_SENTENCE}} Text.');
+    expect(result).toBeNull();
+  });
+
   it('returns null for an empty base text', async () => {
     const composer = new MessageComposer({ client: fakeClient(['{"body": "x"}']), model: 'm' });
     expect(await composer.compose(listing, '   ')).toBeNull();
