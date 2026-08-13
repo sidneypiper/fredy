@@ -721,7 +721,7 @@ export default function ListingDetail() {
                       {t('listing.detail.personalizedMessageCopy')}
                     </Button>
                   </Space>
-                  <Text style={{ whiteSpace: 'pre-wrap' }}>{listing.personalized_message}</Text>
+                  <Text style={{ whiteSpace: 'pre-wrap' }}>{'\n' + listing.personalized_message}</Text>
                 </>
               )}
 
