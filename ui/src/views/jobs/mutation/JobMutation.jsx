@@ -367,42 +367,37 @@ export default function JobMutator() {
           <PersonalizedMessage condition={personalizedMessage} onChange={setPersonalizedMessage} />
         </SegmentPart>
         <Divider margin="1rem" />
-        <SegmentPart Icon={IconUser} name={t('jobs.mutation.sectionSharing')} helpText={t('jobs.mutation.sharingHelp')}>
-          {shareableUserList.length === 0 ? (
-            <div>{t('jobs.mutation.sharingNoUsers')}</div>
-          ) : (
-            <Select
-              filter
-              multiple
-              placeholder={t('jobs.mutation.sharingSearchPlaceholder')}
-              autoClearSearchValue={false}
-              defaultValue={shareWithUsers}
-              onChange={(value) => setShareWithUsers(value)}
-              style={{ width: '100%' }}
-            >
-              {shareableUserList.map((user) => (
-                <Select.Option value={user.id} key={user.id}>
-                  {user.name}
-                </Select.Option>
-              ))}
-            </Select>
-          )}
-        </SegmentPart>
-        <Divider margin="1rem" />
-        {/* The map is the tallest card on the page, so the activation card sits beside it and
-            stretches to its full height instead of leaving a half-empty column below the short
-            controls. */}
+        {/* Sharing and activation are short controls, so they share a row; the activation card
+            stretches to the full height of that row instead of stopping at the switch. */}
         <Row gutter={[16, 16]}>
-          <Col xs={24} lg={16}>
+          <Col xs={24} lg={12}>
             <SegmentPart
-              Icon={IconFilter}
-              name={t('jobs.mutation.sectionAreaFilter')}
-              helpText={t('jobs.mutation.areaFilterHelp')}
+              Icon={IconUser}
+              name={t('jobs.mutation.sectionSharing')}
+              helpText={t('jobs.mutation.sharingHelp')}
             >
-              <AreaFilter spatialFilter={spatialFilter} onChange={handleSpatialFilterChange} />
+              {shareableUserList.length === 0 ? (
+                <div>{t('jobs.mutation.sharingNoUsers')}</div>
+              ) : (
+                <Select
+                  filter
+                  multiple
+                  placeholder={t('jobs.mutation.sharingSearchPlaceholder')}
+                  autoClearSearchValue={false}
+                  defaultValue={shareWithUsers}
+                  onChange={(value) => setShareWithUsers(value)}
+                  style={{ width: '100%' }}
+                >
+                  {shareableUserList.map((user) => (
+                    <Select.Option value={user.id} key={user.id}>
+                      {user.name}
+                    </Select.Option>
+                  ))}
+                </Select>
+              )}
             </SegmentPart>
           </Col>
-          <Col xs={24} lg={8} className="jobMutation__activationCol">
+          <Col xs={24} lg={12} className="jobMutation__activationCol">
             <SegmentPart
               Icon={IconPlayCircle}
               name={t('jobs.mutation.sectionActivation')}
@@ -415,6 +410,14 @@ export default function JobMutator() {
             </SegmentPart>
           </Col>
         </Row>
+        <Divider margin="1rem" />
+        <SegmentPart
+          Icon={IconFilter}
+          name={t('jobs.mutation.sectionAreaFilter')}
+          helpText={t('jobs.mutation.areaFilterHelp')}
+        >
+          <AreaFilter spatialFilter={spatialFilter} onChange={handleSpatialFilterChange} />
+        </SegmentPart>
         <Divider margin="1rem" />
         <Button type="danger" style={{ marginRight: '1rem' }} onClick={() => navigate('/jobs')}>
           {t('jobs.mutation.cancel')}
