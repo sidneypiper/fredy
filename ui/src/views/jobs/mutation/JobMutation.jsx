@@ -11,6 +11,7 @@ import NotificationChannelTable from '../../../components/table/NotificationChan
 import ProviderTable from '../../../components/table/ProviderTable';
 import ProviderMutator from './components/provider/ProviderMutator';
 import AreaFilter from './components/areaFilter/AreaFilter';
+import TravelTimeCondition from './components/travelTime/TravelTimeCondition';
 import Headline from '../../../components/headline/Headline';
 import { useActions, useSelector } from '../../../services/state/store';
 import { xhrPost, errorMessage } from '../../../services/xhr';
@@ -28,6 +29,7 @@ import {
   IconUser,
   IconFilter,
   IconHome,
+  IconClock,
   IconSetting,
 } from '@douyinfe/semi-icons';
 import { useTranslation } from '../../../services/i18n/i18n.jsx';
@@ -66,6 +68,7 @@ export default function JobMutator() {
   const defaultShareWithUsers = sourceJob?.shared_with_user ?? [];
   const defaultSpatialFilter = sourceJob?.spatialFilter || null;
   const defaultSpecFilter = sourceJob?.specFilter || null;
+  const defaultTravelTimeCondition = sourceJob?.travelTimeCondition || null;
   // Deliberately not defaulted for a new job: the user has to say what they are looking for,
   // because it decides which half of their finance profile applies to everything this job finds.
   const defaultDealType = sourceJob?.dealType || null;
@@ -82,6 +85,7 @@ export default function JobMutator() {
   const [enabled, setEnabled] = useState(defaultEnabled);
   const [spatialFilter, setSpatialFilter] = useState(defaultSpatialFilter);
   const [specFilter, setSpecFilter] = useState(defaultSpecFilter);
+  const [travelTimeCondition, setTravelTimeCondition] = useState(defaultTravelTimeCondition);
   const [dealType, setDealType] = useState(defaultDealType);
   const navigate = useNavigate();
   const actions = useActions();
@@ -131,6 +135,7 @@ export default function JobMutator() {
         blacklist,
         spatialFilter,
         specFilter,
+        travelTimeCondition,
         dealType,
         enabled,
         jobId: jobToBeEdit?.id || null,
@@ -340,6 +345,14 @@ export default function JobMutator() {
                   </div>
                 ))}
               </div>
+            </SegmentPart>
+
+            <SegmentPart
+              Icon={IconClock}
+              name={t('jobs.mutation.sectionTravelTime')}
+              helpText={t('jobs.mutation.travelTimeHelp')}
+            >
+              <TravelTimeCondition condition={travelTimeCondition} onChange={setTravelTimeCondition} />
             </SegmentPart>
 
             {/* Sharing and activation are short controls. Stacking them under the criteria

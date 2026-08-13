@@ -1,0 +1,65 @@
+/*
+ * Copyright (c) 2026 by Christian Kellner.
+ * Licensed under Apache-2.0 with Commons Clause and Attribution/Naming Clause
+ */
+
+@import '../../../../../tokens.less';
+
+.travelTimeCondition {
+  /* The add button sits at the top right of the card, like the providers' "Add provider". */
+  &__add {
+    float: right;
+    margin-bottom: @space-3;
+  }
+
+  &__empty {
+    clear: both;
+    color: @color-muted;
+    font-size: @text-sm;
+  }
+
+  &__filter {
+    clear: both;
+    display: flex;
+    flex-direction: column;
+    gap: @space-2;
+    padding: @space-3;
+    border: 1px solid @color-border;
+    border-radius: @radius-card;
+    background: @color-fill-subtle;
+    margin-bottom: @space-2;
+  }
+
+  /* The place select takes the full width minus the delete button, which sits at its right. */
+  &__filterTop {
+    display: flex;
+    align-items: center;
+    gap: @space-2;
+  }
+
+  &__select {
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* One threshold per row: label on the left of the card, input on the right. The input is
+     inset by the delete button's footprint (32px button + the 8px gap) so its right edge lines
+     up with the select's right edge instead of the card's. */
+  &__thresholdRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: @space-2;
+    margin-right: 40px;
+  }
+
+  &__thresholdLabel {
+    color: @color-muted;
+    font-size: @text-sm;
+  }
+
+  &__missing {
+    color: @color-error;
+    font-size: @text-xs;
+  }
+}

@@ -118,3 +118,89 @@ describe('jobStorage.upsertJob deal type', () => {
     expect(update.params.dealType).toBe('rent');
   });
 });
+
+describe('jobStorage travel time condition', () => {
+  let jobStorage;
+
+  beforeEach(async () => {
+    calls.execute.length = 0;
+    calls.query.length = 0;
+    sqliteMock.__queryHandler = null;
+    jobStorage = await import('../../lib/services/storage/jobStorage.js');
+  });
+
+  const CONDITION = {
+    places: [{ label: 'Home', lat: 50.94, lng: 6.96, exactMaxMinutes: 30, coarseMaxMinutes: 45 }],
+  };
+
+  it('persists the travel time condition on insert', () => {
+    jobStorage.upsertJob({
+      userId: 'u1',
+      name: 'Job',
+      provider: [],
+      notificationAdapter: [],
+      travelTimeCondition: CONDITION,
+    });
+    const insert = calls.execute.find((c) => c.sql.includes('INSERT INTO jobs'));
+    expect(insert.sql).toContain('travel_time_condition');
+    expect(JSON.parse(insert.params.travelTimeCondition)).toEqual(CONDITION);
+  });
+
+  it('persists the travel time condition on update', () => {
+    sqliteMock.__queryHandler = (sql) => (sql.includes('SELECT id, user_id') ? [{ id: 'job-1', user_id: 'u1' }] : []);
+    jobStorage.upsertJob({
+      jobId: 'job-1',
+      name: 'Job',
+      provider: [],
+      notificationAdapter: [],
+      travelTimeCondition: CONDITION,
+    });
+    const update = calls.execute.find((c) => c.sql.includes('UPDATE jobs'));
+    expect(update.sql).toContain('travel_time_condition = @travelTimeCondition');
+    expect(JSON.parse(update.params.travelTimeCondition)).toEqual(CONDITION);
+  });
+
+  it('stores NULL when no condition is given', () => {
+    jobStorage.upsertJob({ userId: 'u1', name: 'Job', provider: [], notificationAdapter: [] });
+    const insert = calls.execute.find((c) => c.sql.includes('INSERT INTO jobs'));
+    expect(insert.params.travelTimeCondition).toBeNull();
+  });
+
+  it('selects and hydrates the condition on every read path', () => {
+    sqliteMock.__queryHandler = (sql) => {
+      if (sql.includes('j.notification_adapter')) {
+        return [
+          {
+            id: 'job-1',
+            userId: 'u1',
+            enabled: 1,
+            name: 'Job',
+            blacklist: '[]',
+            provider: '[]',
+            shared_with_user: '[]',
+            notificationAdapter: '[]',
+            spatialFilter: null,
+            specFilter: null,
+            travelTimeCondition: JSON.stringify(CONDITION),
+            dealType: 'rent',
+            lastRunAt: null,
+            numberOfFoundListings: 0,
+          },
+        ];
+      }
+      return [];
+    };
+    for (const read of [
+      jobStorage.getJob('job-1'),
+      ...jobStorage.getJobs({ includeDisabled: true }),
+      ...jobStorage.queryJobs({ userId: 'u1' }).result,
+    ]) {
+      expect(read.travelTimeCondition).toEqual(CONDITION);
+    }
+    for (const call of calls.query) {
+      if (call.sql.includes('j.notification_adapter')) {
+        expect(call.sql).toContain('j.travel_time_condition AS travelTimeCondition');
+      }
+    }
+  });
+});
