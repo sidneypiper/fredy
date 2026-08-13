@@ -26,19 +26,24 @@
     color: @color-muted;
   }
 
-  /* The criteria and area filters sit side by side. Without this the shorter of the two cards
-     stops halfway down and the row reads as two unrelated blocks instead of one filter step. */
-  /* The left column stacks the short controls (criteria, sharing, activation) beside the tall
-     map, which is what keeps them from running off the bottom of the page as full-width cards.
-     Column direction is explicit: the default row direction would sit them side by side. The
-     column is free to be shorter than the map, so only its trailing margin is trimmed. */
-  &__filterRow > .semi-col {
+  /* The activation card sits beside the tall map and stretches to its full height, so the
+     column must be a flex container and the card must grow to fill it. The switch is centered
+     in the card body, which would otherwise be mostly empty. */
+  &__activationCol {
     display: flex;
-    flex-direction: column;
 
-    > .segmentParts:last-child {
+    > .segmentParts {
+      flex: 1;
+      height: 100%;
       margin-bottom: 0;
     }
+  }
+
+  &__activationBody {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 4rem;
   }
 
   &__actions {

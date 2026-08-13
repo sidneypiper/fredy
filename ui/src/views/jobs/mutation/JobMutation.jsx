@@ -367,52 +367,54 @@ export default function JobMutator() {
           <PersonalizedMessage condition={personalizedMessage} onChange={setPersonalizedMessage} />
         </SegmentPart>
         <Divider margin="1rem" />
-        <Row gutter={[16, 16]}>
-          <Col xs={24} lg={12}>
-            <SegmentPart
-              Icon={IconUser}
-              name={t('jobs.mutation.sectionSharing')}
-              helpText={t('jobs.mutation.sharingHelp')}
+        <SegmentPart Icon={IconUser} name={t('jobs.mutation.sectionSharing')} helpText={t('jobs.mutation.sharingHelp')}>
+          {shareableUserList.length === 0 ? (
+            <div>{t('jobs.mutation.sharingNoUsers')}</div>
+          ) : (
+            <Select
+              filter
+              multiple
+              placeholder={t('jobs.mutation.sharingSearchPlaceholder')}
+              autoClearSearchValue={false}
+              defaultValue={shareWithUsers}
+              onChange={(value) => setShareWithUsers(value)}
+              style={{ width: '100%' }}
             >
-              {shareableUserList.length === 0 ? (
-                <div>{t('jobs.mutation.sharingNoUsers')}</div>
-              ) : (
-                <Select
-                  filter
-                  multiple
-                  placeholder={t('jobs.mutation.sharingSearchPlaceholder')}
-                  autoClearSearchValue={false}
-                  defaultValue={shareWithUsers}
-                  onChange={(value) => setShareWithUsers(value)}
-                  style={{ width: '100%' }}
-                >
-                  {shareableUserList.map((user) => (
-                    <Select.Option value={user.id} key={user.id}>
-                      {user.name}
-                    </Select.Option>
-                  ))}
-                </Select>
-              )}
+              {shareableUserList.map((user) => (
+                <Select.Option value={user.id} key={user.id}>
+                  {user.name}
+                </Select.Option>
+              ))}
+            </Select>
+          )}
+        </SegmentPart>
+        <Divider margin="1rem" />
+        {/* The map is the tallest card on the page, so the activation card sits beside it and
+            stretches to its full height instead of leaving a half-empty column below the short
+            controls. */}
+        <Row gutter={[16, 16]}>
+          <Col xs={24} lg={16}>
+            <SegmentPart
+              Icon={IconFilter}
+              name={t('jobs.mutation.sectionAreaFilter')}
+              helpText={t('jobs.mutation.areaFilterHelp')}
+            >
+              <AreaFilter spatialFilter={spatialFilter} onChange={handleSpatialFilterChange} />
             </SegmentPart>
           </Col>
-          <Col xs={24} lg={12}>
+          <Col xs={24} lg={8} className="jobMutation__activationCol">
             <SegmentPart
               Icon={IconPlayCircle}
               name={t('jobs.mutation.sectionActivation')}
               helpText={t('jobs.mutation.activationHelp')}
+              className="jobMutation__activationCard"
             >
-              <Switch className="jobMutation__spaceTop" onChange={(checked) => setEnabled(checked)} checked={enabled} />
+              <div className="jobMutation__activationBody">
+                <Switch onChange={(checked) => setEnabled(checked)} checked={enabled} />
+              </div>
             </SegmentPart>
           </Col>
         </Row>
-        <Divider margin="1rem" />
-        <SegmentPart
-          Icon={IconFilter}
-          name={t('jobs.mutation.sectionAreaFilter')}
-          helpText={t('jobs.mutation.areaFilterHelp')}
-        >
-          <AreaFilter spatialFilter={spatialFilter} onChange={handleSpatialFilterChange} />
-        </SegmentPart>
         <Divider margin="1rem" />
         <Button type="danger" style={{ marginRight: '1rem' }} onClick={() => navigate('/jobs')}>
           {t('jobs.mutation.cancel')}
