@@ -966,5 +966,6 @@
   "listing.detail.personalizedMessageCopied": "Message copied",
   "listing.detail.personalizedMessageEmpty": "No personalized message for this listing.",
   "jobs.mutation.personalizedMessageNoAi": "Configure an AI provider under Settings → AI to enable personalized messages.",
-  "settings.aiApiKeyClear": "Clear key"
+  "settings.aiApiKeyClear": "Clear key",
+  "nav.ai": "AI"
 }

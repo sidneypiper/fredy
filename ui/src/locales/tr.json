@@ -951,5 +951,6 @@
   "listing.detail.personalizedMessageCopied": "Mesaj kopyalandı",
   "listing.detail.personalizedMessageEmpty": "Bu ilan için kişiselleştirilmiş mesaj yok.",
   "jobs.mutation.personalizedMessageNoAi": "Kişiselleştirilmiş mesajları etkinleştirmek için Ayarlar → Yapay Zeka altında bir yapay zeka sağlayıcısı yapılandırın.",
-  "settings.aiApiKeyClear": "Anahtarı temizle"
+  "settings.aiApiKeyClear": "Anahtarı temizle",
+  "nav.ai": "Yapay Zeka"
 }

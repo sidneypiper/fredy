@@ -966,5 +966,6 @@
   "listing.detail.personalizedMessageCopied": "Nachricht kopiert",
   "listing.detail.personalizedMessageEmpty": "Keine personalisierte Nachricht für dieses Inserat.",
   "jobs.mutation.personalizedMessageNoAi": "Konfiguriere einen KI-Anbieter unter Einstellungen → KI, um personalisierte Nachrichten zu aktivieren.",
-  "settings.aiApiKeyClear": "Schlüssel löschen"
+  "settings.aiApiKeyClear": "Schlüssel löschen",
+  "nav.ai": "KI"
 }
