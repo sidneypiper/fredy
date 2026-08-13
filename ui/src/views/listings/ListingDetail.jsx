@@ -37,6 +37,7 @@ import {
   IconDelete,
   IconExpand,
   IconGridView,
+  IconComment,
 } from '@douyinfe/semi-icons';
 import maplibregl from '../../components/map/maplibre.js';
 import Map from '../../components/map/Map.jsx';
@@ -698,6 +699,31 @@ export default function ListingDetail() {
               <Text type="secondary" style={{ whiteSpace: 'pre-wrap' }}>
                 {listing.description || t('listing.detail.noDescription')}
               </Text>
+
+              {listing.personalized_message && (
+                <>
+                  <Divider margin="1.5rem" />
+                  <Space align="center" style={{ marginBottom: '0.5rem' }}>
+                    <IconComment style={{ fontSize: '18px', color: 'var(--semi-color-primary)' }} />
+                    <Text strong>{t('listing.detail.personalizedMessageTitle')}</Text>
+                    <Button
+                      size="small"
+                      theme="borderless"
+                      onClick={async () => {
+                        try {
+                          await navigator.clipboard?.writeText(listing.personalized_message);
+                          Toast.success(t('listing.detail.personalizedMessageCopied'));
+                        } catch {
+                          // Clipboard unavailable (e.g. insecure context) - nothing to do.
+                        }
+                      }}
+                    >
+                      {t('listing.detail.personalizedMessageCopy')}
+                    </Button>
+                  </Space>
+                  <Text style={{ whiteSpace: 'pre-wrap' }}>{listing.personalized_message}</Text>
+                </>
+              )}
 
               {Array.isArray(listing.distances) && listing.distances.length > 0 && (
                 <>

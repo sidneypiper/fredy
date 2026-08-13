@@ -8,6 +8,22 @@ import { mockFredy, sseEvents } from './utils.js';
 import * as mockStore from './mocks/mockStore.js';
 import { get as getLastNotification } from './mocks/mockNotification.js';
 
+// The composer is a network call; the pipeline tests only need to prove when it is invoked and
+// what happens to its result. The fake answers with a deterministic body per listing.
+vi.mock('../lib/services/ai/messageComposer.js', () => ({
+  createComposerFromSettings: (settings) => {
+    if (!settings?.ai_api_key) return null;
+    return {
+      compose: async (listing) => ({
+        body: `Personalized: ${listing.title}`,
+        subject: null,
+        model: 'test',
+        fallback: false,
+      }),
+    };
+  },
+}));
+
 describe('Issue reproduction: listings filtered by similarity or area should be marked as manually deleted', () => {
   it('should call deleteListingsById when listings are filtered by similarity', async () => {
     const Fredy = await mockFredy();
@@ -545,5 +561,114 @@ describe('Enrichment runs only on listings that pass the travel time filter', ()
       id: 'near',
       details: { description: 'enriched', rooms: undefined, size: undefined },
     });
+  });
+});
+
+describe('Personalized messages are generated for the listings that survived every filter', () => {
+  afterEach(() => {
+    mockStore.setUserSettings(null);
+    mockStore.setJob(null);
+    mockStore.updatedPersonalizedMessages.length = 0;
+  });
+
+  const baseProviderConfig = () => ({
+    url: 'http://example.com',
+    getListings: () =>
+      Promise.resolve([
+        { id: 'a', title: 'Altbau in Deutz', address: 'Köln', price: '600', link: 'http://example.com/a' },
+        { id: 'b', title: 'Neubau in Porz', address: 'Köln', price: '700', link: 'http://example.com/b' },
+      ]),
+    normalize: (l) => l,
+    filter: () => true,
+    crawlFields: { id: 'id', title: 'title', address: 'address', price: 'price' },
+    requiredFieldNames: ['id', 'title', 'address', 'price'],
+  });
+
+  it('generates and persists a message for every survivor when the job and the AI are configured', async () => {
+    const Fredy = await mockFredy();
+    mockStore.setUserSettings({ ai_provider: 'ollama', ai_model: 'llama3.1', ai_api_key: 'key' });
+    mockStore.setJob({
+      id: 'pm-job',
+      userId: 'user1',
+      notificationAdapter: null,
+      specFilter: null,
+      spatialFilter: null,
+      personalizedMessage: { enabled: true, baseText: '{{GREETING}} {{AD_SENTENCE}} Text.' },
+    });
+    mockStore.updatedPersonalizedMessages.length = 0;
+
+    const fredy = new Fredy(
+      baseProviderConfig(),
+      { id: 'pm-job' },
+      'test-provider',
+      { checkAndAddEntry: () => false },
+      undefined,
+    );
+    const result = await fredy.execute();
+
+    expect(result.map((l) => l.personalizedMessage)).toEqual([
+      'Personalized: Altbau in Deutz',
+      'Personalized: Neubau in Porz',
+    ]);
+    expect(mockStore.updatedPersonalizedMessages).toContainEqual({
+      id: 'a',
+      message: 'Personalized: Altbau in Deutz',
+    });
+    expect(mockStore.updatedPersonalizedMessages).toContainEqual({
+      id: 'b',
+      message: 'Personalized: Neubau in Porz',
+    });
+  });
+
+  it('skips generation when the job has the feature disabled', async () => {
+    const Fredy = await mockFredy();
+    mockStore.setUserSettings({ ai_provider: 'ollama', ai_model: 'llama3.1', ai_api_key: 'key' });
+    mockStore.setJob({
+      id: 'pm-off',
+      userId: 'user1',
+      notificationAdapter: null,
+      specFilter: null,
+      spatialFilter: null,
+      personalizedMessage: { enabled: false, baseText: '{{GREETING}} Text.' },
+    });
+    mockStore.updatedPersonalizedMessages.length = 0;
+
+    const fredy = new Fredy(
+      baseProviderConfig(),
+      { id: 'pm-off' },
+      'test-provider',
+      { checkAndAddEntry: () => false },
+      undefined,
+    );
+    const result = await fredy.execute();
+
+    expect(result.every((l) => l.personalizedMessage == null)).toBe(true);
+    expect(mockStore.updatedPersonalizedMessages).toHaveLength(0);
+  });
+
+  it('skips generation when the AI is not configured', async () => {
+    const Fredy = await mockFredy();
+    mockStore.setUserSettings({});
+    mockStore.setJob({
+      id: 'pm-noconfig',
+      userId: 'user1',
+      notificationAdapter: null,
+      specFilter: null,
+      spatialFilter: null,
+      personalizedMessage: { enabled: true, baseText: '{{GREETING}} Text.' },
+    });
+    mockStore.updatedPersonalizedMessages.length = 0;
+
+    const fredy = new Fredy(
+      baseProviderConfig(),
+      { id: 'pm-noconfig' },
+      'test-provider',
+      { checkAndAddEntry: () => false },
+      undefined,
+    );
+    const result = await fredy.execute();
+
+    expect(result.every((l) => l.personalizedMessage == null)).toBe(true);
+    expect(mockStore.updatedPersonalizedMessages).toHaveLength(0);
   });
 });

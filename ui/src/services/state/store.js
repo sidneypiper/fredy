@@ -541,6 +541,42 @@ export const useFredyState = create(
             }
           },
           /**
+           * Persist the AI provider, model and API key used for personalized messages.
+           *
+           * The key is never returned by the server, so the local state only mirrors the
+           * provider and model; the key lives server-side.
+           *
+           * @param {{ai_provider: string|null, ai_model: string|null, ai_api_key: string|null}} params
+           * @returns {Promise<void>}
+           */
+          async setAiSettings({ ai_provider, ai_model, ai_api_key }) {
+            try {
+              const response = await xhrPost('/api/user/settings/ai-settings', {
+                ai_provider,
+                ai_model,
+                ai_api_key,
+              });
+              if (response.status === 200) {
+                set((state) => ({
+                  userSettings: {
+                    ...state.userSettings,
+                    settings: {
+                      ...state.userSettings.settings,
+                      ai_provider,
+                      ai_model,
+                      ai_api_key_set: Boolean(ai_api_key) || state.userSettings.settings.ai_api_key_set,
+                    },
+                  },
+                }));
+                return;
+              }
+              throw response;
+            } catch (Exception) {
+              console.error('Error while trying to update AI settings. Error:', Exception);
+              throw Exception;
+            }
+          },
+          /**
            * Persist one tab (renting or buying) of the finance profile, leaving the other tab as
            * it is already stored.
            *

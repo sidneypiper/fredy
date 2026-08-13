@@ -333,6 +333,32 @@ describe('telegram send() - mixed batch (regression-safety)', () => {
     expect(mockNodeFetch.mock.calls[0][0]).toBe('https://api.telegram.org/botTKN/sendMessage');
     expect(mockGlobalFetch).not.toHaveBeenCalled();
   });
+
+  it('includes the personalized message in the sendMessage body', async () => {
+    mockNodeFetch.mockResolvedValueOnce(jsonOk());
+
+    await send({
+      serviceName: 'immowelt',
+      newListings: [
+        {
+          id: 'a',
+          title: 't',
+          link: 'l',
+          address: 'a',
+          price: '',
+          size: '',
+          image: null,
+          personalizedMessage: 'Sehr geehrte Frau Mustermann, ...',
+        },
+      ],
+      notificationConfig: [baseConfig],
+      jobKey: 'Berlin',
+    });
+
+    const body = JSON.parse(mockNodeFetch.mock.calls[0][1].body);
+    expect(body.text).toContain('Message to the landlord:');
+    expect(body.text).toContain('Sehr geehrte Frau Mustermann, ...');
+  });
 });
 
 describe('telegram send() - multiple chat IDs', () => {

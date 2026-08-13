@@ -204,3 +204,88 @@ describe('jobStorage travel time condition', () => {
     }
   });
 });
+
+describe('jobStorage personalized message', () => {
+  let jobStorage;
+
+  beforeEach(async () => {
+    calls.execute.length = 0;
+    calls.query.length = 0;
+    sqliteMock.__queryHandler = null;
+    jobStorage = await import('../../lib/services/storage/jobStorage.js');
+  });
+
+  const CONDITION = { enabled: true, baseText: '{{GREETING}} {{AD_SENTENCE}} Text.' };
+
+  it('persists the personalized message condition on insert', () => {
+    jobStorage.upsertJob({
+      userId: 'u1',
+      name: 'Job',
+      provider: [],
+      notificationAdapter: [],
+      personalizedMessage: CONDITION,
+    });
+    const insert = calls.execute.find((c) => c.sql.includes('INSERT INTO jobs'));
+    expect(insert.sql).toContain('personalized_message');
+    expect(JSON.parse(insert.params.personalizedMessage)).toEqual(CONDITION);
+  });
+
+  it('persists the personalized message condition on update', () => {
+    sqliteMock.__queryHandler = (sql) => (sql.includes('SELECT id, user_id') ? [{ id: 'job-1', user_id: 'u1' }] : []);
+    jobStorage.upsertJob({
+      jobId: 'job-1',
+      name: 'Job',
+      provider: [],
+      notificationAdapter: [],
+      personalizedMessage: CONDITION,
+    });
+    const update = calls.execute.find((c) => c.sql.includes('UPDATE jobs'));
+    expect(update.sql).toContain('personalized_message = @personalizedMessage');
+    expect(JSON.parse(update.params.personalizedMessage)).toEqual(CONDITION);
+  });
+
+  it('stores NULL when no condition is given', () => {
+    jobStorage.upsertJob({ userId: 'u1', name: 'Job', provider: [], notificationAdapter: [] });
+    const insert = calls.execute.find((c) => c.sql.includes('INSERT INTO jobs'));
+    expect(insert.params.personalizedMessage).toBeNull();
+  });
+
+  it('selects and hydrates the condition on every read path', () => {
+    sqliteMock.__queryHandler = (sql) => {
+      if (sql.includes('j.notification_adapter')) {
+        return [
+          {
+            id: 'job-1',
+            userId: 'u1',
+            enabled: 1,
+            name: 'Job',
+            blacklist: '[]',
+            provider: '[]',
+            shared_with_user: '[]',
+            notificationAdapter: '[]',
+            spatialFilter: null,
+            specFilter: null,
+            travelTimeCondition: null,
+            personalizedMessage: JSON.stringify(CONDITION),
+            dealType: 'rent',
+            lastRunAt: null,
+            numberOfFoundListings: 0,
+          },
+        ];
+      }
+      return [];
+    };
+    for (const read of [
+      jobStorage.getJob('job-1'),
+      ...jobStorage.getJobs({ includeDisabled: true }),
+      ...jobStorage.queryJobs({ userId: 'u1' }).result,
+    ]) {
+      expect(read.personalizedMessage).toEqual(CONDITION);
+    }
+    for (const call of calls.query) {
+      if (call.sql.includes('j.notification_adapter')) {
+        expect(call.sql).toContain('j.personalized_message AS personalizedMessage');
+      }
+    }
+  });
+});
