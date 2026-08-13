@@ -367,6 +367,14 @@ export default function JobMutator() {
           <PersonalizedMessage condition={personalizedMessage} onChange={setPersonalizedMessage} />
         </SegmentPart>
         <Divider margin="1rem" />
+        <SegmentPart
+          Icon={IconFilter}
+          name={t('jobs.mutation.sectionAreaFilter')}
+          helpText={t('jobs.mutation.areaFilterHelp')}
+        >
+          <AreaFilter spatialFilter={spatialFilter} onChange={handleSpatialFilterChange} />
+        </SegmentPart>
+        <Divider margin="1rem" />
         {/* Sharing and activation are short controls, so they share a row; the activation card
             stretches to the full height of that row instead of stopping at the switch. */}
         <Row gutter={[16, 16]}>
@@ -410,14 +418,6 @@ export default function JobMutator() {
             </SegmentPart>
           </Col>
         </Row>
-        <Divider margin="1rem" />
-        <SegmentPart
-          Icon={IconFilter}
-          name={t('jobs.mutation.sectionAreaFilter')}
-          helpText={t('jobs.mutation.areaFilterHelp')}
-        >
-          <AreaFilter spatialFilter={spatialFilter} onChange={handleSpatialFilterChange} />
-        </SegmentPart>
         <Divider margin="1rem" />
         <Button type="danger" style={{ marginRight: '1rem' }} onClick={() => navigate('/jobs')}>
           {t('jobs.mutation.cancel')}
