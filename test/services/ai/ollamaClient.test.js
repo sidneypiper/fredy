@@ -43,6 +43,7 @@ describe('OllamaClient', () => {
       model: 'llama3.1',
       temperature: 0.4,
       messages: [{ role: 'user', content: 'hi' }],
+      reasoning_effort: 'none',
     });
   });
 
