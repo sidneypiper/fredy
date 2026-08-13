@@ -426,6 +426,7 @@ describe('Enrichment runs only on listings that pass the travel time filter', ()
     mockStore.setUserSettings(null);
     mockStore.setJob(null);
     mockStore.setTravelTimes(new Map());
+    mockStore.updatedDetails.length = 0;
   });
 
   it('fetches the detail page only for listings within the commute, not for the ones filtered out', async () => {
@@ -538,5 +539,11 @@ describe('Enrichment runs only on listings that pass the travel time filter', ()
     // Enrichment ran after the filter, so the detail page was fetched for the survivor only.
     expect(fetchDetails).toHaveBeenCalledTimes(1);
     expect(fetchDetails.mock.calls[0][0].id).toBe('near');
+
+    // The enriched fields were written back to the stored row, since enrichment runs after save.
+    expect(mockStore.updatedDetails).toContainEqual({
+      id: 'near',
+      details: { description: 'enriched', rooms: undefined, size: undefined },
+    });
   });
 });

@@ -52,6 +52,10 @@ export function getAddresses(settings) {
 export const updateListingDistances = (id, distances) => {
   // noop
 };
+export const updatedDetails = [];
+export const updateListingDetails = (id, details) => {
+  updatedDetails.push({ id, details });
+};
 export const deletedIds = [];
 export const deleteListingsById = (ids) => {
   deletedIds.push(...ids);
