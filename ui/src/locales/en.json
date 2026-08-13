@@ -964,5 +964,6 @@
   "listing.detail.personalizedMessageTitle": "Message to the landlord",
   "listing.detail.personalizedMessageCopy": "Copy",
   "listing.detail.personalizedMessageCopied": "Message copied",
-  "listing.detail.personalizedMessageEmpty": "No personalized message for this listing."
+  "listing.detail.personalizedMessageEmpty": "No personalized message for this listing.",
+  "jobs.mutation.personalizedMessageNoAi": "Configure an AI provider under Settings → AI to enable personalized messages."
 }

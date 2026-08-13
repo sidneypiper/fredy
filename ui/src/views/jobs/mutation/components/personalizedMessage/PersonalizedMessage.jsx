@@ -4,6 +4,7 @@
  */
 
 import { Switch, TextArea } from '@douyinfe/semi-ui-19';
+import { useSelector } from '../../../../../services/state/store';
 import { useTranslation } from '../../../../../services/i18n/i18n.jsx';
 import './PersonalizedMessage.less';
 
@@ -29,7 +30,10 @@ const PLACEHOLDERS = ['{{GREETING}}', '{{AD_SENTENCE}}', '{{MOVE_IN_DATE}}'];
  */
 export default function PersonalizedMessage({ condition, onChange }) {
   const t = useTranslation();
-  const enabled = condition?.enabled ?? false;
+  // The toggle only makes sense once an AI provider is configured in Settings → AI; without one
+  // the pipeline would have nothing to generate with.
+  const aiConfigured = Boolean(useSelector((state) => state.userSettings.settings.ai_provider));
+  const enabled = (condition?.enabled ?? false) && aiConfigured;
   const baseText = condition?.baseText ?? '';
 
   const setEnabled = (next) => onChange({ enabled: next, baseText });
@@ -39,9 +43,17 @@ export default function PersonalizedMessage({ condition, onChange }) {
   return (
     <div className="personalizedMessage">
       <div className="personalizedMessage__toggle">
-        <Switch checked={enabled} onChange={setEnabled} aria-label={t('jobs.mutation.personalizedMessageToggle')} />
+        <Switch
+          checked={enabled}
+          onChange={setEnabled}
+          disabled={!aiConfigured}
+          aria-label={t('jobs.mutation.personalizedMessageToggle')}
+        />
         <span className="personalizedMessage__toggleLabel">{t('jobs.mutation.personalizedMessageToggleLabel')}</span>
       </div>
+      {!aiConfigured && (
+        <div className="personalizedMessage__missing">{t('jobs.mutation.personalizedMessageNoAi')}</div>
+      )}
       <TextArea
         className="personalizedMessage__textarea"
         value={baseText}

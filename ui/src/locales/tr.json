@@ -949,5 +949,6 @@
   "listing.detail.personalizedMessageTitle": "Ev sahibine mesaj",
   "listing.detail.personalizedMessageCopy": "Kopyala",
   "listing.detail.personalizedMessageCopied": "Mesaj kopyalandı",
-  "listing.detail.personalizedMessageEmpty": "Bu ilan için kişiselleştirilmiş mesaj yok."
+  "listing.detail.personalizedMessageEmpty": "Bu ilan için kişiselleştirilmiş mesaj yok.",
+  "jobs.mutation.personalizedMessageNoAi": "Kişiselleştirilmiş mesajları etkinleştirmek için Ayarlar → Yapay Zeka altında bir yapay zeka sağlayıcısı yapılandırın."
 }

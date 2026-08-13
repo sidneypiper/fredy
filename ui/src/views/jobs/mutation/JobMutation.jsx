@@ -328,49 +328,47 @@ export default function JobMutator() {
           />
         </SegmentPart>
         <Divider margin="1rem" />
-        {/* Both filters narrow the same search, so they belong beside each other where there is
-            room. The Col breakpoints collapse them back into a single column on a phone. */}
-        <Row gutter={[16, 16]} className="jobMutation__filterRow">
-          <Col xs={24} lg={12}>
-            <SegmentPart
-              Icon={IconFilter}
-              name={t('jobs.mutation.sectionCriteriaFilter')}
-              helpText={t('jobs.mutation.criteriaFilterHelp')}
-            >
-              <div className="jobMutation__specFilter">
-                {SPEC_FILTERS.map((filter) => (
-                  <div key={filter.key} className="jobMutation__specFilterItem">
-                    <div className="jobMutation__specFilterLabel">{filter.translation}</div>
-                    <Input
-                      type="number"
-                      placeholder={t('jobs.mutation.criteriaNumberPlaceholder')}
-                      value={specFilter?.[filter.key]}
-                      onChange={(value) => handleSpecFilterChange(filter.key, value)}
-                    />
-                  </div>
-                ))}
+        {/* The filters are full-width cards now: the map is tall, and stacking the short
+            controls beside it left the column half empty. Only sharing and activation stay
+            half-width, next to each other, because they are short enough to share a row. */}
+        <SegmentPart
+          Icon={IconFilter}
+          name={t('jobs.mutation.sectionCriteriaFilter')}
+          helpText={t('jobs.mutation.criteriaFilterHelp')}
+        >
+          <div className="jobMutation__specFilter">
+            {SPEC_FILTERS.map((filter) => (
+              <div key={filter.key} className="jobMutation__specFilterItem">
+                <div className="jobMutation__specFilterLabel">{filter.translation}</div>
+                <Input
+                  type="number"
+                  placeholder={t('jobs.mutation.criteriaNumberPlaceholder')}
+                  value={specFilter?.[filter.key]}
+                  onChange={(value) => handleSpecFilterChange(filter.key, value)}
+                />
               </div>
-            </SegmentPart>
-
-            <SegmentPart
-              Icon={IconClock}
-              name={t('jobs.mutation.sectionTravelTime')}
-              helpText={t('jobs.mutation.travelTimeHelp')}
-            >
-              <TravelTimeCondition condition={travelTimeCondition} onChange={setTravelTimeCondition} />
-            </SegmentPart>
-
-            <SegmentPart
-              Icon={IconComment}
-              name={t('jobs.mutation.sectionPersonalizedMessage')}
-              helpText={t('jobs.mutation.personalizedMessageHelp')}
-            >
-              <PersonalizedMessage condition={personalizedMessage} onChange={setPersonalizedMessage} />
-            </SegmentPart>
-
-            {/* Sharing and activation are short controls. Stacking them under the criteria
-                filter fills the column the tall map leaves half empty, instead of pushing two
-                near-empty full-width cards below the fold. */}
+            ))}
+          </div>
+        </SegmentPart>
+        <Divider margin="1rem" />
+        <SegmentPart
+          Icon={IconClock}
+          name={t('jobs.mutation.sectionTravelTime')}
+          helpText={t('jobs.mutation.travelTimeHelp')}
+        >
+          <TravelTimeCondition condition={travelTimeCondition} onChange={setTravelTimeCondition} />
+        </SegmentPart>
+        <Divider margin="1rem" />
+        <SegmentPart
+          Icon={IconComment}
+          name={t('jobs.mutation.sectionPersonalizedMessage')}
+          helpText={t('jobs.mutation.personalizedMessageHelp')}
+        >
+          <PersonalizedMessage condition={personalizedMessage} onChange={setPersonalizedMessage} />
+        </SegmentPart>
+        <Divider margin="1rem" />
+        <Row gutter={[16, 16]}>
+          <Col xs={24} lg={12}>
             <SegmentPart
               Icon={IconUser}
               name={t('jobs.mutation.sectionSharing')}
@@ -396,7 +394,8 @@ export default function JobMutator() {
                 </Select>
               )}
             </SegmentPart>
-
+          </Col>
+          <Col xs={24} lg={12}>
             <SegmentPart
               Icon={IconPlayCircle}
               name={t('jobs.mutation.sectionActivation')}
@@ -405,16 +404,15 @@ export default function JobMutator() {
               <Switch className="jobMutation__spaceTop" onChange={(checked) => setEnabled(checked)} checked={enabled} />
             </SegmentPart>
           </Col>
-          <Col xs={24} lg={12}>
-            <SegmentPart
-              Icon={IconFilter}
-              name={t('jobs.mutation.sectionAreaFilter')}
-              helpText={t('jobs.mutation.areaFilterHelp')}
-            >
-              <AreaFilter spatialFilter={spatialFilter} onChange={handleSpatialFilterChange} />
-            </SegmentPart>
-          </Col>
         </Row>
+        <Divider margin="1rem" />
+        <SegmentPart
+          Icon={IconFilter}
+          name={t('jobs.mutation.sectionAreaFilter')}
+          helpText={t('jobs.mutation.areaFilterHelp')}
+        >
+          <AreaFilter spatialFilter={spatialFilter} onChange={handleSpatialFilterChange} />
+        </SegmentPart>
         <Divider margin="1rem" />
         <Button type="danger" style={{ marginRight: '1rem' }} onClick={() => navigate('/jobs')}>
           {t('jobs.mutation.cancel')}

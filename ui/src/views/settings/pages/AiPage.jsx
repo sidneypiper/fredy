@@ -15,6 +15,9 @@ import { useTranslation } from '../../../services/i18n/i18n.jsx';
 /** The only provider implemented so far. The select is a single option on purpose. */
 const PROVIDERS = ['ollama'];
 
+/** Display names for the provider values. */
+const PROVIDER_LABELS = { ollama: 'Ollama Cloud' };
+
 /**
  * The AI used to personalize messages for jobs with the feature enabled.
  *
@@ -71,7 +74,7 @@ export default function AiPage() {
             >
               {PROVIDERS.map((p) => (
                 <Select.Option value={p} key={p}>
-                  {p}
+                  {PROVIDER_LABELS[p] ?? p}
                 </Select.Option>
               ))}
             </Select>
