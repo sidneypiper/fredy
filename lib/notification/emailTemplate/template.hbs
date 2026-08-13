@@ -98,6 +98,14 @@
                                                 </td>
                                             </tr>
                                             {{/if}}
+                                            {{#if this.personalizedMessage}}
+                                            <tr><td class="sp-8"></td><td class="sp-8"></td></tr>
+                                            <tr>
+                                                <td colspan="2">
+                                                    <p class="meta"><strong>Message to the landlord</strong><br/>{{this.personalizedMessage}}</p>
+                                                </td>
+                                            </tr>
+                                            {{/if}}
                                         </table>
                                     </td>
                                 </tr>
