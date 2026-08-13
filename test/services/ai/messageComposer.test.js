@@ -8,6 +8,7 @@ import {
   MessageComposer,
   createComposerFromSettings,
   detectLanguage,
+  findAgreements,
   findMoveInDate,
   formatGermanDate,
   parseAgentName,
@@ -79,6 +80,29 @@ describe('renderBaseText', () => {
   it('drops the ad sentence placeholder when there is none', () => {
     const body = renderBaseText('{{GREETING}} {{AD_SENTENCE}} Text.', { greeting: 'Hi', moveIn: 'sofort' });
     expect(body).not.toContain('{{AD_SENTENCE}}');
+  });
+
+  it('finds the agreements and their price in the enriched description', () => {
+    expect(findAgreements('Möbelübernahme gegen 500 € möglich')).toEqual({ price: '500' });
+    expect(findAgreements('Die Einbauküche kann für 300 Euro übernommen werden')).toEqual({ price: '300' });
+    expect(findAgreements('Möbelübernahme möglich')).toEqual({ price: null });
+    expect(findAgreements('Ruhige Lage, Balkon, 600 € Kaltmiete')).toBeNull();
+    expect(findAgreements(null)).toBeNull();
+  });
+
+  it('fills the agreements placeholder', () => {
+    const body = renderBaseText('{{GREETING}} Text. {{AGREEMENTS}}', {
+      greeting: 'Hi',
+      moveIn: 'sofort',
+      agreements: 'Die Übernahme der Möbel ist für mich kein Problem.',
+    });
+    expect(body).toContain('Die Übernahme der Möbel ist für mich kein Problem.');
+    expect(body).not.toContain('{{AGREEMENTS}}');
+  });
+
+  it('leaves the agreements placeholder empty when there are none', () => {
+    const body = renderBaseText('{{GREETING}} Text. {{AGREEMENTS}}', { greeting: 'Hi', moveIn: 'sofort' });
+    expect(body).not.toContain('{{AGREEMENTS}}');
   });
 });
 

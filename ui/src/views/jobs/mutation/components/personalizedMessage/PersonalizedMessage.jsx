@@ -12,7 +12,7 @@ import './PersonalizedMessage.less';
  * The placeholders the composer prompt defines. Shown in the UI so the user knows exactly which
  * tokens the AI will replace - the same list the system prompt in messageComposer.js documents.
  */
-const PLACEHOLDERS = ['{{GREETING}}', '{{AD_SENTENCE}}', '{{MOVE_IN_DATE}}'];
+const PLACEHOLDERS = ['{{GREETING}}', '{{AD_SENTENCE}}', '{{MOVE_IN_DATE}}', '{{AGREEMENTS}}'];
 
 /**
  * A job's personalized message setting: a toggle plus the base text the AI personalizes per
