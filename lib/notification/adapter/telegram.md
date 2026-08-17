@@ -56,6 +56,12 @@ Use `chat.id` as `chatId` and `message_thread_id` as `threadId` in your configur
 
 More details about bots and BotFather: https://core.telegram.org/bots#botfather
 
+#### Send the landlord message separately
+
+If you use the personalized "Message to the landlord" feature, that text is normally appended to the listing message. To make it easy to copy on its own (long-press → Copy on your phone gives you exactly the message to send to the landlord), enable **Send landlord message separately**.
+
+When on, the landlord message is removed from the listing message and sent as its own plain-text message right below it. Long-press that message → Copy to paste it straight into your email or chat with the landlord. It is off by default, so existing channels keep the previous behaviour.
+
 ### Price changes
 
 This adapter also reports **price changes** when price tracking is enabled (Settings > Price tracking, off by default). A price change notification carries the old price, the new price and the percentage, and says whether the price went up or down. Changes smaller than the configured threshold are recorded in the listing's price history but are not sent, so rounding noise does not reach you.

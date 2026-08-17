@@ -361,6 +361,177 @@ describe('telegram send() - mixed batch (regression-safety)', () => {
   });
 });
 
+describe('telegram send() - sendLandlordMessageSeparately', () => {
+  it('sends the landlord message as its own plain-text message and strips it from the listing message', async () => {
+    mockNodeFetch.mockResolvedValue(jsonOk());
+
+    await send({
+      serviceName: 'immowelt',
+      newListings: [
+        {
+          id: 'a',
+          title: 't',
+          link: 'l',
+          address: 'a',
+          price: '',
+          size: '',
+          image: null,
+          personalizedMessage: 'Sehr geehrte Frau Mustermann, ...',
+        },
+      ],
+      notificationConfig: [
+        { id: 'telegram', fields: { token: 'TKN', chatId: '999', sendLandlordMessageSeparately: true } },
+      ],
+      jobKey: 'Berlin',
+    });
+
+    expect(mockNodeFetch).toHaveBeenCalledTimes(2);
+    expect(mockNodeFetch.mock.calls[0][0]).toBe('https://api.telegram.org/botTKN/sendMessage');
+    expect(mockNodeFetch.mock.calls[1][0]).toBe('https://api.telegram.org/botTKN/sendMessage');
+
+    const listingBody = JSON.parse(mockNodeFetch.mock.calls[0][1].body);
+    expect(listingBody.text).not.toContain('Message to the landlord:');
+    expect(listingBody.text).not.toContain('Sehr geehrte Frau Mustermann');
+
+    const landlordBody = JSON.parse(mockNodeFetch.mock.calls[1][1].body);
+    expect(landlordBody.text).toBe('Sehr geehrte Frau Mustermann, ...');
+    expect(landlordBody.parse_mode).toBeUndefined();
+    expect(landlordBody.disable_web_page_preview).toBe(true);
+    expect(landlordBody.chat_id).toBe('999');
+  });
+
+  it('sends the landlord message after a photo listing when the flag is on', async () => {
+    mockNodeFetch.mockResolvedValue(jsonOk());
+
+    await send({
+      serviceName: 'immowelt',
+      newListings: [
+        {
+          id: 'a',
+          title: 't',
+          link: 'l',
+          address: 'a',
+          price: '',
+          size: '',
+          image: 'https://example.com/x.jpg',
+          personalizedMessage: 'Hallo, ...',
+        },
+      ],
+      notificationConfig: [
+        { id: 'telegram', fields: { token: 'TKN', chatId: '999', sendLandlordMessageSeparately: true } },
+      ],
+      jobKey: 'Berlin',
+    });
+
+    expect(mockNodeFetch).toHaveBeenCalledTimes(2);
+    expect(mockNodeFetch.mock.calls[0][0]).toBe('https://api.telegram.org/botTKN/sendPhoto');
+    expect(mockNodeFetch.mock.calls[1][0]).toBe('https://api.telegram.org/botTKN/sendMessage');
+
+    const caption = mockNodeFetch.mock.calls[0][1].body;
+    expect(caption).not.toContain('Message to the landlord:');
+
+    const landlordBody = JSON.parse(mockNodeFetch.mock.calls[1][1].body);
+    expect(landlordBody.text).toBe('Hallo, ...');
+  });
+
+  it('does not send a second message when there is no personalized message', async () => {
+    mockNodeFetch.mockResolvedValue(jsonOk());
+
+    await send({
+      serviceName: 'immowelt',
+      newListings: [
+        {
+          id: 'a',
+          title: 't',
+          link: 'l',
+          address: 'a',
+          price: '',
+          size: '',
+          image: null,
+        },
+      ],
+      notificationConfig: [
+        { id: 'telegram', fields: { token: 'TKN', chatId: '999', sendLandlordMessageSeparately: true } },
+      ],
+      jobKey: 'Berlin',
+    });
+
+    expect(mockNodeFetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('defaults to the embedded behaviour when the flag is off', async () => {
+    mockNodeFetch.mockResolvedValueOnce(jsonOk());
+
+    await send({
+      serviceName: 'immowelt',
+      newListings: [
+        {
+          id: 'a',
+          title: 't',
+          link: 'l',
+          address: 'a',
+          price: '',
+          size: '',
+          image: null,
+          personalizedMessage: 'Sehr geehrte, ...',
+        },
+      ],
+      notificationConfig: [
+        { id: 'telegram', fields: { token: 'TKN', chatId: '999', sendLandlordMessageSeparately: false } },
+      ],
+      jobKey: 'Berlin',
+    });
+
+    expect(mockNodeFetch).toHaveBeenCalledTimes(1);
+    const body = JSON.parse(mockNodeFetch.mock.calls[0][1].body);
+    expect(body.text).toContain('Message to the landlord:');
+  });
+
+  it('interleaves listing and landlord messages per listing (not all listings then all texts)', async () => {
+    mockNodeFetch.mockResolvedValue(jsonOk());
+
+    await send({
+      serviceName: 'immowelt',
+      newListings: [
+        {
+          id: '1',
+          title: 'Flat One',
+          link: 'l1',
+          address: 'a',
+          price: '',
+          size: '',
+          image: null,
+          personalizedMessage: 'LANDLORD_ONE',
+        },
+        {
+          id: '2',
+          title: 'Flat Two',
+          link: 'l2',
+          address: 'a',
+          price: '',
+          size: '',
+          image: null,
+          personalizedMessage: 'LANDLORD_TWO',
+        },
+      ],
+      notificationConfig: [
+        { id: 'telegram', fields: { token: 'TKN', chatId: '999', sendLandlordMessageSeparately: true } },
+      ],
+      jobKey: 'Berlin',
+    });
+
+    expect(mockNodeFetch).toHaveBeenCalledTimes(4);
+    const texts = mockNodeFetch.mock.calls.map((c) => JSON.parse(c[1].body).text);
+    // listing1, landlord1, listing2, landlord2
+    expect(texts[0]).toContain('Flat One');
+    expect(texts[0]).not.toContain('LANDLORD_ONE');
+    expect(texts[1]).toBe('LANDLORD_ONE');
+    expect(texts[2]).toContain('Flat Two');
+    expect(texts[2]).not.toContain('LANDLORD_TWO');
+    expect(texts[3]).toBe('LANDLORD_TWO');
+  });
+});
+
 describe('telegram send() - multiple chat IDs', () => {
   const listing = {
     id: '1',
