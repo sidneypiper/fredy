@@ -55,6 +55,20 @@ describe('#immoscout-mobile URL conversion', () => {
     expect(new URL(convertWebToMobile(webUrl)).searchParams.get('shape')).toBe(polyline);
   });
 
+  // The web UI sometimes emits a base64 shape with embedded whitespace (line breaks / spaces).
+  // Node's base64 decoder ignores whitespace, so the decode used to succeed; the strict base64
+  // pattern must not reject such a shape and forward it raw, which the API answers with 400.
+  it('should decode a base64 shape that contains whitespace', () => {
+    const polyline = 'ymrwHidih@`IkS_Aal@oTsVoViClw@g';
+    // The web UI writes `.` where base64 would use `=`; inject spaces in the middle, as observed
+    // in a real ImmoScout shape URL.
+    const base64 = Buffer.from(polyline, 'utf-8').toString('base64').replace(/=/g, '.');
+    const withWhitespace = base64.slice(0, 10) + '  ' + base64.slice(10);
+    const webUrl = `https://www.immobilienscout24.de/Suche/shape/haus-kaufen?shape=${encodeURIComponent(withWhitespace)}`;
+
+    expect(new URL(convertWebToMobile(webUrl)).searchParams.get('shape')).toBe(polyline);
+  });
+
   // Base64 that decodes to bytes no polyline could contain is not a shape we can use. Sending the
   // mangled decode would be strictly worse than sending what we were given, so the input wins.
   it('should keep the original value when a base64 decode yields no polyline', () => {
