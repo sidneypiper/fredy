@@ -90,6 +90,14 @@ describe('renderBaseText', () => {
     expect(findAgreements(null)).toBeNull();
   });
 
+  it('does NOT treat a kitchen that is merely included in the rent as an agreement', () => {
+    expect(
+      findAgreements('In der Kaltmiete inkludiert ist eine hochwertige Einbauküche mit Siemens-Geräten ausgestattet.'),
+    ).toBeNull();
+    expect(findAgreements('Eine Einbauküche ist im Mietpreis enthalten.')).toBeNull();
+    expect(findAgreements('Die Wohnung verfügt über eine Einbauküche.')).toBeNull();
+  });
+
   it('fills the agreements placeholder', () => {
     const body = renderBaseText('{{GREETING}} Text. {{AGREEMENTS}}', {
       greeting: 'Hi',
@@ -159,14 +167,18 @@ describe('MessageComposer', () => {
     expect(result.body).toContain('01.11.2026');
   });
 
-  it('skips the message when the fallback would have to praise a section heading', async () => {
+  it('omits the ad sentence (but still sends the message) when the fallback finds nothing distinctive', async () => {
     const composer = new MessageComposer({ client: fakeClient([null]), model: 'm' });
     const headingOnly = {
       title: 'Wohnung',
       description: 'Agent: Max Mustermann\n\nBeschreibung\nRuhige 2-Zimmer-Wohnung in zentraler Lage mit Balkon.',
     };
     const result = await composer.compose(headingOnly, '{{GREETING}} {{AD_SENTENCE}} Text.');
-    expect(result).toBeNull();
+    expect(result).not.toBeNull();
+    expect(result.fallback).toBe(true);
+    // No ad sentence was invented, and no section heading is praised.
+    expect(result.body).not.toContain('Beschreibung');
+    expect(result.body).toContain('Text.');
   });
 
   it('returns null for an empty base text', async () => {
