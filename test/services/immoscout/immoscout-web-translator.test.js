@@ -336,6 +336,17 @@ describe('#immoscout-mobile URL conversion', () => {
     expect(queryParams.get('tenantNetwork')).toBe('true');
   });
 
+  // The mobile API needs `features=tenantNetwork` to surface tenant-network listings at all -
+  // `tenantNetwork=true` alone now returns 0. The features parameter (comma-separated, e.g.
+  // 'tenantNetwork' or 'adKeysAndStringValues,...,tenantNetwork') must pass through unchanged.
+  it('should pass through a features query parameter', () => {
+    const webUrl =
+      'https://www.immobilienscout24.de/Suche/de/nordrhein-westfalen/neuss-rhein-kreis/rommerskirchen/wohnung-mieten?features=tenantNetwork';
+
+    const converted = convertWebToMobile(webUrl);
+    expect(new URL(converted).searchParams.get('features')).toBe('tenantNetwork');
+  });
+
   // Test URL conversion with unsupported query parameters
   it('should remove unsupported query parameters', () => {
     const webUrl = 'https://www.immobilienscout24.de/Suche/de/berlin/berlin/wohnung-mieten?minimuminternetspeed=100000';
