@@ -86,10 +86,11 @@ describe('#immobilien.de testsuite()', () => {
         expect(enriched.link).toContain('https://www.immobilien.de');
         expect(enriched.address).toBeTypeOf('string');
         expect(enriched.address).not.toBe('');
-        // description may be null if selectors don't match yet - falls back gracefully
-        if (enriched.description != null) {
-          expect(enriched.description).toBeTypeOf('string');
-        }
+        // The RealEstateListing JSON-LD block carries raw newlines in the description, so a strict
+        // JSON.parse used to throw and description came back null. The extractor sanitizes the
+        // block first, so the description must now be a non-empty string.
+        expect(enriched.description).toBeTypeOf('string');
+        expect(enriched.description).not.toBe('');
       },
       TEST_TIMEOUT,
     );
