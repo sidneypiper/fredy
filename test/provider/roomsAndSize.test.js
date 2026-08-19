@@ -151,6 +151,16 @@ describe('kleinanzeigen rooms and size', () => {
     expect(enriched).toMatchObject({ size: 89, rooms: 2 });
   });
 
+  it('prefixes the description with the seller name as an Agent line', async () => {
+    const enriched = await kleinanzeigenConfig.fetchDetails(listingWithoutFigures, null);
+
+    // The fixture is a commercial VON POLL IMMOBILIEN ad, so the Agent line carries the shop name
+    // plus the (gewerblich) marker the message composer uses to pick "Damen und Herren".
+    expect(enriched.description).toContain('Agent:');
+    expect(enriched.description).toContain('VON POLL IMMOBILIEN');
+    expect(enriched.description).toContain('(gewerblich)');
+  });
+
   it('keeps the figures the search result already provided', async () => {
     const enriched = await kleinanzeigenConfig.fetchDetails({ ...listingWithoutFigures, size: 55, rooms: 1 }, null);
 

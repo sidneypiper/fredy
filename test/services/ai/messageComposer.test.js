@@ -11,6 +11,8 @@ import {
   findAgreements,
   findMoveInDate,
   formatGermanDate,
+  isInformal,
+  looksLikeBusiness,
   parseAgentName,
   parseDate,
   parseJsonAnswer,
@@ -63,6 +65,22 @@ describe('date helpers', () => {
   it('guesses the base text language', () => {
     expect(detectLanguage('Sehr geehrte Damen und Herren, ich interessiere mich für die Wohnung.')).toBe('de');
     expect(detectLanguage('Dear Sir or Madam, I am interested in the apartment.')).toBe('en');
+  });
+});
+
+describe('register + business helpers', () => {
+  it('tells a Du base text apart from a Sie base text', () => {
+    expect(isInformal('Hallo Anna, Deine Wohnung gefällt mir. Du erreichst mich ...')).toBe(true);
+    expect(isInformal('Sehr geehrte Frau Schmidt, Ihre Wohnung gefällt mir. Sie erreichen mich ...')).toBe(false);
+    expect(isInformal('{{GREETING}} Ich möchte einziehen, frühestens {{MOVE_IN_DATE}}.')).toBe(false);
+  });
+
+  it('flags a business/agency name but not a person', () => {
+    expect(looksLikeBusiness('Düsseldorf - VON POLL IMMOBILIEN Shop Düsseldorf')).toBe(true);
+    expect(looksLikeBusiness('Max Mustermann (gewerblich)')).toBe(true);
+    expect(looksLikeBusiness('Anna Schmidt')).toBe(false);
+    expect(looksLikeBusiness('Unbekannt')).toBe(false);
+    expect(looksLikeBusiness(null)).toBe(false);
   });
 });
 
@@ -163,7 +181,7 @@ describe('MessageComposer', () => {
     const composer = new MessageComposer({ client: fakeClient([null]), model: 'm' });
     const result = await composer.compose(
       listing,
-      '{{GREETING}} {{AD_SENTENCE}} Ich möchte einziehen, frühestens {{MOVE_IN_DATE}}.',
+      'Sehr geehrte {{GREETING}},\n\n{{AD_SENTENCE}} Ich möchte einziehen, frühestens {{MOVE_IN_DATE}}.',
     );
     expect(result.fallback).toBe(true);
     expect(result.model).toBe('template');
@@ -201,6 +219,54 @@ describe('MessageComposer', () => {
     // No ad sentence was invented, and no section heading is praised.
     expect(result.body).not.toContain('Beschreibung');
     expect(result.body).toContain('Text.');
+  });
+
+  it('greets a named seller by first name in a Du base text (fallback)', async () => {
+    const composer = new MessageComposer({ client: fakeClient([null]), model: 'm' });
+    const du = {
+      title: 'Nachmieter:in gesucht',
+      address: 'Köln-Sülz',
+      description: 'Agent: Anna Schmidt\n\nDie Wohnung hat einen Balkon. Ab dem 01.10.2026.',
+    };
+    const result = await composer.compose(
+      du,
+      'Hallo {{GREETING}},\n\nDeine Wohnung gefällt mir. Du erreichst mich unter +4915112345678.',
+    );
+    expect(result.fallback).toBe(true);
+    expect(result.body).toContain('Hallo Anna,');
+  });
+
+  it('writes just "Hallo," for a Du base text with an unknown agent (fallback)', async () => {
+    const composer = new MessageComposer({ client: fakeClient([null]), model: 'm' });
+    const du = {
+      title: 'Nachmieter:in gesucht',
+      address: 'Köln-Mülheim',
+      description: 'Agent: Unbekannt\n\nDie Wohnung ist ab dem 15.11.2026 bezugsfrei.',
+    };
+    const result = await composer.compose(
+      du,
+      'Hallo {{GREETING}},\n\nDeine Wohnung gefällt mir. Du erreichst mich unter +4915112345678.',
+    );
+    expect(result.fallback).toBe(true);
+    expect(result.body).toContain('Hallo,');
+    expect(result.body).not.toContain('Hallo Unbekannt');
+  });
+
+  it('falls back to "Damen und Herren" for a commercial seller in a Sie base text (fallback)', async () => {
+    const composer = new MessageComposer({ client: fakeClient([null]), model: 'm' });
+    const commercial = {
+      title: 'Wohnung in Leverkusen',
+      address: 'Leverkusen',
+      description:
+        'Agent: Düsseldorf - VON POLL IMMOBILIEN Shop Düsseldorf (gewerblich)\n\nGute Anbindung. Verfügbar ab 19.11.2026.',
+    };
+    const result = await composer.compose(
+      commercial,
+      'Sehr geehrte {{GREETING}},\n\nIhre Wohnung gefällt mir. Sie erreichen mich unter +4915112345678.',
+    );
+    expect(result.fallback).toBe(true);
+    expect(result.body).toContain('Sehr geehrte Damen und Herren,');
+    expect(result.body).not.toContain('Frau/Herr Düsseldorf');
   });
 
   it('returns null for an empty base text', async () => {
