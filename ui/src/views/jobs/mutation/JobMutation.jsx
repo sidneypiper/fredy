@@ -364,7 +364,11 @@ export default function JobMutator() {
           name={t('jobs.mutation.sectionPersonalizedMessage')}
           helpText={t('jobs.mutation.personalizedMessageHelp')}
         >
-          <PersonalizedMessage condition={personalizedMessage} onChange={setPersonalizedMessage} />
+          <PersonalizedMessage
+            condition={personalizedMessage}
+            onChange={setPersonalizedMessage}
+            providers={providerData}
+          />
         </SegmentPart>
         <Divider margin="1rem" />
         <SegmentPart

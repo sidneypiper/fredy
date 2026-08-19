@@ -10,16 +10,20 @@ import { get as getLastNotification } from './mocks/mockNotification.js';
 
 // The composer is a network call; the pipeline tests only need to prove when it is invoked and
 // what happens to its result. The fake answers with a deterministic body per listing.
+const mockBaseTexts = [];
 vi.mock('../lib/services/ai/messageComposer.js', () => ({
   createComposerFromSettings: (settings) => {
     if (!settings?.ai_api_key) return null;
     return {
-      compose: async (listing) => ({
-        body: `Personalized: ${listing.title}`,
-        subject: null,
-        model: 'test',
-        fallback: false,
-      }),
+      compose: async (listing, baseText) => {
+        mockBaseTexts.push(baseText);
+        return {
+          body: `Personalized: ${listing.title}`,
+          subject: null,
+          model: 'test',
+          fallback: false,
+        };
+      },
     };
   },
 }));
@@ -569,6 +573,7 @@ describe('Personalized messages are generated for the listings that survived eve
     mockStore.setUserSettings(null);
     mockStore.setJob(null);
     mockStore.updatedPersonalizedMessages.length = 0;
+    mockBaseTexts.length = 0;
   });
 
   const baseProviderConfig = () => ({
@@ -668,6 +673,98 @@ describe('Personalized messages are generated for the listings that survived eve
     );
     const result = await fredy.execute();
 
+    expect(result.every((l) => l.personalizedMessage == null)).toBe(true);
+    expect(mockStore.updatedPersonalizedMessages).toHaveLength(0);
+  });
+
+  it('uses a per-provider base text override when one is set for this provider', async () => {
+    const Fredy = await mockFredy();
+    mockStore.setUserSettings({ ai_provider: 'ollama', ai_model: 'llama3.1', ai_api_key: 'key' });
+    mockStore.setJob({
+      id: 'pm-override',
+      userId: 'user1',
+      notificationAdapter: null,
+      specFilter: null,
+      spatialFilter: null,
+      personalizedMessage: {
+        enabled: true,
+        baseText: 'DEFAULT {{GREETING}} Text.',
+        perProvider: { 'test-provider': 'OVERRIDE {{GREETING}} Text.' },
+      },
+    });
+    mockBaseTexts.length = 0;
+
+    const fredy = new Fredy(
+      baseProviderConfig(),
+      { id: 'pm-override' },
+      'test-provider',
+      { checkAndAddEntry: () => false },
+      undefined,
+    );
+    await fredy.execute();
+
+    // The per-provider entry wins over the default for this run's provider.
+    expect(mockBaseTexts).toEqual(['OVERRIDE {{GREETING}} Text.', 'OVERRIDE {{GREETING}} Text.']);
+  });
+
+  it('falls back to the default base text for a provider without an override', async () => {
+    const Fredy = await mockFredy();
+    mockStore.setUserSettings({ ai_provider: 'ollama', ai_model: 'llama3.1', ai_api_key: 'key' });
+    mockStore.setJob({
+      id: 'pm-fallback',
+      userId: 'user1',
+      notificationAdapter: null,
+      specFilter: null,
+      spatialFilter: null,
+      personalizedMessage: {
+        enabled: true,
+        baseText: 'DEFAULT {{GREETING}} Text.',
+        perProvider: { 'other-provider': 'OTHER {{GREETING}} Text.' },
+      },
+    });
+    mockBaseTexts.length = 0;
+
+    const fredy = new Fredy(
+      baseProviderConfig(),
+      { id: 'pm-fallback' },
+      'test-provider',
+      { checkAndAddEntry: () => false },
+      undefined,
+    );
+    await fredy.execute();
+
+    // 'test-provider' has no entry, so the default base text is used.
+    expect(mockBaseTexts).toEqual(['DEFAULT {{GREETING}} Text.', 'DEFAULT {{GREETING}} Text.']);
+  });
+
+  it('skips generation for a provider that has neither a per-provider text nor a default', async () => {
+    const Fredy = await mockFredy();
+    mockStore.setUserSettings({ ai_provider: 'ollama', ai_model: 'llama3.1', ai_api_key: 'key' });
+    mockStore.setJob({
+      id: 'pm-neither',
+      userId: 'user1',
+      notificationAdapter: null,
+      specFilter: null,
+      spatialFilter: null,
+      personalizedMessage: {
+        enabled: true,
+        baseText: '',
+        perProvider: { 'other-provider': 'OTHER {{GREETING}} Text.' },
+      },
+    });
+    mockBaseTexts.length = 0;
+
+    const fredy = new Fredy(
+      baseProviderConfig(),
+      { id: 'pm-neither' },
+      'test-provider',
+      { checkAndAddEntry: () => false },
+      undefined,
+    );
+    const result = await fredy.execute();
+
+    // 'test-provider' has no override and the default is empty, so the composer is never called.
+    expect(mockBaseTexts).toEqual([]);
     expect(result.every((l) => l.personalizedMessage == null)).toBe(true);
     expect(mockStore.updatedPersonalizedMessages).toHaveLength(0);
   });
