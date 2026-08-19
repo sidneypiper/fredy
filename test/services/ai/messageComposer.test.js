@@ -48,6 +48,11 @@ describe('date helpers', () => {
     expect(findMoveInDate('Bezug ab sofort')).toBeNull();
     expect(findMoveInDate('available from 1 November 2026')).toBe('2026-11-01');
     expect(findMoveInDate(null)).toBeNull();
+    // Tenant-network / available-soon phrasing lives only in the free text.
+    expect(findMoveInDate('Die Einheit ist ab dem 01.10.2026 bezugsfrei.')).toBe('2026-10-01');
+    expect(findMoveInDate('Ich suche eine:n Nachmieter:in ab dem 15.11.2026.')).toBe('2026-11-15');
+    // "bezugsfrei ab <date>" now resolves to the date (it used to be killed by the sofort guard).
+    expect(findMoveInDate('Bezugsfrei ab 13.11.2026')).toBe('2026-11-13');
   });
 
   it('extracts the agent name from the enriched description', () => {
@@ -165,6 +170,23 @@ describe('MessageComposer', () => {
     expect(result.body).toContain('Sehr geehrte Frau/Herr Max Mustermann,');
     expect(result.body).toContain('Balkon');
     expect(result.body).toContain('01.11.2026');
+  });
+
+  it('prefers the structured moveInDate over a date found in the description', async () => {
+    const composer = new MessageComposer({ client: fakeClient([null]), model: 'm' });
+    const withMoveInDate = {
+      ...listing,
+      // The provider set a structured date that differs from the one in the description text.
+      moveInDate: '2026-12-01',
+      description: 'Agent: Max Mustermann\n\nVerfügbar ab 01.11.2026. Balkon vorhanden.',
+    };
+    const result = await composer.compose(
+      withMoveInDate,
+      '{{GREETING}} Ich möchte einziehen, frühestens {{MOVE_IN_DATE}}.',
+    );
+    expect(result.fallback).toBe(true);
+    expect(result.body).toContain('01.12.2026');
+    expect(result.body).not.toContain('01.11.2026');
   });
 
   it('omits the ad sentence (but still sends the message) when the fallback finds nothing distinctive', async () => {
