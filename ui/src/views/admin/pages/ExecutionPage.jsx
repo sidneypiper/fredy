@@ -110,6 +110,12 @@ export default function ExecutionPage() {
         invited reading them as four independent knobs. They stay visible while disabled so an
         operator can see what turning the feature on would commit them to.
       */}
+      <SegmentPart name={t('settings.activeCheck')} helpText={t('settings.activeCheckHelp')}>
+        <Checkbox checked={form.activeCheckEnabled} onChange={(e) => setField('activeCheckEnabled', e.target.checked)}>
+          {t('settings.activeCheckEnabled')}
+        </Checkbox>
+      </SegmentPart>
+
       <SegmentPart name={t('settings.priceTracking')} helpText={t('settings.priceTrackingHelp')}>
         {/*
           Above the switch, not below it. Turning this on is the moment the operator takes on the

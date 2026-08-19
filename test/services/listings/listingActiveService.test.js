@@ -7,6 +7,7 @@ import { vi, describe, it, expect, beforeEach } from 'vitest';
 
 const root = (await import('node:path')).resolve('.');
 const storagePath = root + '/lib/services/storage/listingsStorage.js';
+const settingsPath = root + '/lib/services/storage/settingsStorage.js';
 const utilsPath = root + '/lib/utils.js';
 const loggerPath = root + '/lib/services/logger.js';
 
@@ -18,7 +19,10 @@ let state;
  * @param {(link: string) => number} [activityProbe] The provider probe. Defaults to "still online".
  * @returns {Promise<Function>} runActiveChecker
  */
-async function loadService(activityProbe = (link) => state.testerResults[link] ?? 1) {
+async function loadService(
+  activityProbe = (link) => state.testerResults[link] ?? 1,
+  { activeCheckEnabled = true } = {},
+) {
   vi.resetModules();
   vi.doMock(storagePath, () => ({
     getListingsDueForActiveCheck: () => state.due,
@@ -28,6 +32,11 @@ async function loadService(activityProbe = (link) => state.testerResults[link] ?
       state.failuresRecorded.push(...ids);
       return state.exhausted;
     },
+  }));
+  vi.doMock(settingsPath, () => ({
+    // The active checker is opt-in: it only runs when the operator turned it on. The tests exercise
+    // the checker's logic, so they enable it here.
+    getSettings: async () => ({ activeCheckEnabled }),
   }));
   vi.doMock(utilsPath, async (importOriginal) => ({
     // Partial mock: only the provider lookup is faked. `mapLimit` is the real concurrency helper,
@@ -52,6 +61,18 @@ const listing = (id) => ({ id, link: `https://example.com/${id}`, provider: 'imm
 describe('services/listings/listingActiveService', () => {
   beforeEach(() => {
     state = { due: [], testerResults: {}, deactivated: [], marked: [], failuresRecorded: [], exhausted: [] };
+  });
+
+  it('does nothing when the active check is disabled in the settings', async () => {
+    state.due = [listing('gone')];
+    state.testerResults['https://example.com/gone'] = 0;
+    const runActiveChecker = await loadService(() => 0, { activeCheckEnabled: false });
+
+    await runActiveChecker();
+
+    expect(state.deactivated).toEqual([]);
+    expect(state.marked).toEqual([]);
+    expect(state.failuresRecorded).toEqual([]);
   });
 
   it('deactivates a listing the provider reports as gone', async () => {
